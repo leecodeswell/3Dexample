@@ -1,4 +1,6 @@
 import './style.css';
+import modelConfig from './model-config.json';
+import { createTreatments } from './materials.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -6,6 +8,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -16,7 +19,7 @@ const canvas = $('#watch-canvas'), stage = $('#stage');
 const slider = $('#explosion-slider'), output = $('#explosion-value');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mobile = () => innerWidth <= 700;
-const state = { progress: 0, ready: false, cinematic: !reducedMotion, labels: true, studio: true, interacting: false, focused: false, manualView: false };
+const state = { progress: 0, ready: false, cinematic: !reducedMotion, labels: true, studio: true, brown: true, finish: true, interacting: false, focused: false, manualView: false };
 const parts = new Map(), pickable = [], originals = new Map(), labels = [];
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -31,7 +34,18 @@ let animationFrame, scrollTrigger, lastInteraction = 0, clickStart, disposed = f
 let scrollIntent = true;
 const cinematicTarget = new THREE.Vector3();
 const cinematicPosition = new THREE.Vector3();
+const treatments = createTreatments();
+const treatedMeshes = [];
 const glass = [];
+function updateTreatments() {
+  for (const record of treatedMeshes) {
+    record.mesh.material = record.variants.map(v => {
+      const useStudio = v.original.name === 'Glass' ? state.studio : state.finish;
+      return useStudio ? (state.brown ? v.brownStudio : v.studio) : (state.brown ? v.brown : v.original);
+    });
+    if (!record.array) record.mesh.material = record.mesh.material[0];
+  }
+}
 
 function setChapter(index) {
   if (index === chapter) return;
@@ -70,17 +84,18 @@ function smoothStep(start, end, p) {
 }
 
 const definitions = {
-  case: { title: 'Corpus', subtitle: 'I / CORPUS', description: 'Argentum in forma. Corpus et lunula, in perfecta concordia.', offset: [0, -.42, 0], range: [.25, .72], anchor: [0, 0, -1.15] },
-  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Caeruleum profundum. Numeri et indices una cum tabula moventur.', offset: [0, 1.0, 0], range: [.36, .83], anchor: [0, 0, -.95] },
-  glass: { title: 'Vitrum', subtitle: 'II / VITRUM', description: 'Lumen transit. Vitrum a corpore leniter separatur.', offset: [0, 3.05, 0], range: [.02, .51], anchor: [0, 0, -.95] },
-  hour: { title: 'Hora', subtitle: 'III / HORA', description: 'Parva sagitta, horae indicium. Motus in proprio axe.', offset: [-.12, 1.8, .05], range: [.23, .63], anchor: [-.45, 0, -.1] },
-  minute: { title: 'Minuta', subtitle: 'III / MINUTA', description: 'Longa sagitta, subtilis mensura. Pars singularis et libera.', offset: [.12, 2.2, -.03], range: [.18, .64], anchor: [0, 0, -.55] },
-  second: { title: 'Secunda', subtitle: 'III / SECUNDA', description: 'Momentum fugit. Tertia sagitta separatim revelatur.', offset: [0, 2.6, .09], range: [.12, .58], anchor: [0, 0, -.35] },
-  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 1.5, 0], range: [.22, .66], anchor: [0, 0, 0] },
-  crown: { title: 'Corona', subtitle: 'V / CORONA', description: 'Corona ad latus. Parva forma, magna diligentia.', offset: [0, .06, -.9], range: [.55, .94], anchor: [0, 0, -.1] },
-  bars: { title: 'Vincula', subtitle: 'V / VINCULA', description: 'Vincula corpus et armillam coniungunt. Unus reticulus, duo axes.', offset: [.55, -.15, 0], range: [.56, .94], anchor: [1.05, 0, 0] },
-  bracelet: { title: 'Armilla', subtitle: 'VI / ARMILLA', description: 'Metallum circa carpi formam. Articuli in uno reticulo coniuncti.', offset: [0, -.86, 0], range: [.46, .95], anchor: [0, -1.3, -.65] },
-  clasp: { title: 'Fibula', subtitle: 'VI / FIBULA', description: 'Ultima pars, perfecta clausura. Fibula et parvus cardo simul moventur.', offset: [0, -1.35, 0], range: [.61, 1], anchor: [0, -3.2, -.3] },
+  case: { title: 'Corpus', subtitle: 'I / CORPUS', description: 'Argentum in forma. Corpus et lunula, in perfecta concordia.', offset: [0, 0, -.42], range: [.25, .72], anchor: [1.15, 0, 0] },
+  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Brunneum profundum. Numeri et indices una cum tabula moventur.', offset: [0, 0, 1.0], range: [.36, .83], anchor: [.95, 0, .1] },
+  glass: { title: 'Vitrum', subtitle: 'II / VITRUM', description: 'Lumen transit. Vitrum a corpore leniter separatur.', offset: [0, 0, 3.05], range: [.02, .51], anchor: [.95, 0, .1] },
+  hour: { title: 'Hora', subtitle: 'III / HORA', description: 'Parva sagitta, horae indicium. Motus in proprio axe.', offset: [-.12, .05, 1.8], range: [.23, .63], anchor: [-.45, 0, -.1] },
+  minute: { title: 'Minuta', subtitle: 'III / MINUTA', description: 'Longa sagitta, subtilis mensura. Pars singularis et libera.', offset: [.12, -.03, 2.2], range: [.18, .64], anchor: [0, 0, -.55] },
+  second: { title: 'Secunda', subtitle: 'III / SECUNDA', description: 'Momentum fugit. Tertia sagitta separatim revelatur.', offset: [0, .09, 2.6], range: [.12, .58], anchor: [.2, .2, .1] },
+  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 0, 1.5], range: [.22, .66], anchor: [0, 0, 0] },
+  crown: { title: 'Corona', subtitle: 'V / CORONA', description: 'Corona ad latus. Parva forma, magna diligentia.', offset: [.9, 0, .06], range: [.55, .94], anchor: [1.05, 0, 0] },
+  bars: { title: 'Ansae', subtitle: 'V / ANSAE', description: 'Ansae corpus et armillam coniungunt. Forma et materia in concordia.', offset: [.55, 0, -.15], range: [.56, .94], anchor: [1.05, 0, 0] },
+  bracelet: { title: 'Armilla', subtitle: 'VI / ARMILLA', description: 'Metallum circa carpi formam. Articuli in uno reticulo coniuncti.', offset: [0, 0, -.86], range: [.46, .95], anchor: [.6, -.7, -1.3] },
+  backplate: { title: 'Fundus', subtitle: 'VII / FUNDUS', description: 'Pars posterior. Metallum et textura sub lumine revelantur.', offset: [.12, 0, -1.25], range: [.58, .98], anchor: [.7, 0, -.3] },
+  clasp: { title: 'Fibula', subtitle: 'VI / FIBULA', description: 'Ultima pars, perfecta clausura. Fibula et parvus cardo simul moventur.', offset: [0, 0, -1.35], range: [.61, 1], anchor: [.3, 0, -2.1] },
 };
 
 function applyExplosion() {
@@ -135,55 +150,40 @@ function focusPart(key) {
 
 async function loadWatch() {
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync('/mechanical watch.glb', (e) => {
+  const gltf = await loader.loadAsync(modelConfig.asset, (e) => {
     if (e.total) $('#load-percent').textContent = `${Math.round(e.loaded / e.total * 100)}%`;
   });
-  const model = gltf.scene;
-  const orientation = new THREE.Group(); orientation.rotation.z = -Math.PI / 2;
-  model.rotation.x = Math.PI / 2;
-  orientation.add(model); scene.add(orientation);
-  // Parser associations identify the actual source nodes, independent of name sanitization.
+  const model = new THREE.Group(); scene.add(model);
+  gltf.scene.scale.setScalar(modelConfig.scale);
+  gltf.scene.position.fromArray(modelConfig.center).multiplyScalar(-modelConfig.scale);
+  model.add(gltf.scene); scene.updateMatrixWorld(true);
+  const sourceWorld = new Map();
+  gltf.scene.traverse(o => { if (o.isMesh) sourceWorld.set(o, o.matrixWorld.clone()); });
+  if (sourceWorld.size !== modelConfig.meshCount) throw new Error('Uploaded model mesh count does not match its inspected mapping.');
   const nodes = await Promise.all(gltf.parser.json.nodes.map((_, i) => gltf.parser.getDependency('node', i)));
-  const caseNode = nodes[0];
-  const dialPrimitive = caseNode.children.find(child => child.isMesh && child.material?.name === 'digit place');
-  if (!dialPrimitive) throw new Error('Expected independent dial primitive was not found.');
-  scene.updateMatrixWorld(true);
-  const sourceWorld = new Map(); model.traverse(o => { if (o.isMesh) sourceWorld.set(o, o.matrixWorld.clone()); });
-  const memberships = {
-    case: [caseNode, nodes[2]], glass: [nodes[7]], dial: [dialPrimitive, ...nodes.slice(8, 16)],
-    hour: [nodes[19]], minute: [nodes[20]], second: [nodes[18]], hub: [nodes[16], nodes[17]],
-    crown: [nodes[1]], bars: [nodes[4]], bracelet: [nodes[3]], clasp: [nodes[5], nodes[6]],
-  };
-  // Detach the dial first so the remaining case node can move separately. attach preserves world transforms.
-  for (const key of ['dial', 'case', 'glass', 'hour', 'minute', 'second', 'hub', 'crown', 'bars', 'bracelet', 'clasp']) {
+  const assigned = new Set();
+  for (const [key, indices] of Object.entries(modelConfig.memberships)) {
     const group = new THREE.Group(); group.name = `component_${key}`; model.add(group);
-    memberships[key].forEach(node => group.attach(node));
+    for (const index of indices) {
+      const node = nodes[index];
+      if (!node.isMesh || assigned.has(node)) throw new Error(`Invalid or duplicated source node ${index}`);
+      assigned.add(node); group.attach(node);
+    }
     const def = definitions[key];
-    const part = { ...def, group, origin: group.position.clone(), offset: new THREE.Vector3(...def.offset), range: def.range };
-    parts.set(key, part);
+    parts.set(key, { ...def, group, origin: group.position.clone(), offset: new THREE.Vector3(...def.offset), range: def.range });
     group.traverse(child => {
       if (!child.isMesh) return;
       child.userData.part = key; pickable.push(child);
-      child.castShadow = true; child.receiveShadow = true;
-      const materials = Array.isArray(child.material) ? child.material : [child.material];
-      for (const material of materials) {
-        if (material.name === 'Window Glass') {
-          originals.set(child, child.material);
-          // Source material is retained. This optional cloned physical treatment fixes the
-          // exported BLEND material's alpha=1 without altering the GLB or other materials.
-          const studio = new THREE.MeshPhysicalMaterial({
-            name: 'Studio vitrum', color: '#e7edf0', metalness: 0, roughness: .075,
-            transmission: .96, thickness: .09, ior: 1.46, transparent: true, opacity: .22,
-            clearcoat: 1, clearcoatRoughness: .04, side: THREE.DoubleSide, depthWrite: false,
-          });
-          glass.push({ mesh: child, original: child.material, studio });
-          child.material = studio; child.castShadow = false; child.renderOrder = 2;
-        }
-      }
+      const array = Array.isArray(child.material);
+      const materials = array ? child.material : [child.material];
+      treatedMeshes.push({ mesh: child, array, variants: materials.map(treatments.variants) });
+      if (materials.some(m => m.name === 'Glass')) { child.renderOrder = 2; glass.push(child); }
     });
   }
+  if (assigned.size !== sourceWorld.size) throw new Error('Some source meshes are missing from the component mapping.');
+  updateTreatments();
   // Seven restrained labels; all actual meshes remain available by clicking.
-  for (const key of ['glass', 'second', 'dial', 'case', 'crown', 'bracelet', 'clasp']) {
+  for (const key of ['glass', 'second', 'dial', 'case', 'crown', 'bracelet', 'backplate', 'clasp']) {
     const el = document.createElement('div'); el.className = 'part-label';
     const button = document.createElement('button'); button.textContent = parts.get(key).subtitle;
     button.setAttribute('aria-label', `Inspect ${key}`); button.tabIndex = -1;
@@ -198,6 +198,7 @@ async function loadWatch() {
     get progress() { return state.progress; },
     get parts() { return [...parts.keys()]; },
     get meshCount() { return pickable.length; },
+    get appearance() { return { brown: state.brown, finish: state.finish, studioGlass: state.studio }; },
     get cameraPosition() { return camera.position.toArray(); },
     get sourceTransformsMatch() { scene.updateMatrixWorld(true); return [...sourceWorld].every(([mesh, matrix]) => mesh.matrixWorld.elements.every((value, i) => Math.abs(value - matrix.elements[i]) < 1e-6)); },
     get assembled() { return [...parts.values()].every(p => p.group.position.distanceTo(p.origin) < 1e-8); },
@@ -302,7 +303,17 @@ function setupScene() {
   const rim = new THREE.DirectionalLight(0xf2d1a0, 1.3); rim.position.set(-4, -3, -2); scene.add(rim);
   scene.add(new THREE.AmbientLight(0xd3dcc5, .12));
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
-  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .045, .4, 1.7); composer.addPass(bloom);
+  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .065, .4, 1.5); composer.addPass(bloom);
+  composer.addPass(new ShaderPass({
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+      void main(){ vec4 c=texture2D(tDiffuse,vUv); vec2 p=vUv-.5;
+      float vignette=1.0-.20*dot(p,p);
+      float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5;
+      c.rgb=c.rgb*vec3(1.025,1.0,.975)*vignette+grain*.002*c.a;
+      gl_FragColor=vec4(max(c.rgb,vec3(0.0)),c.a); }`,
+  }));
   composer.addPass(new OutputPass());
   resize(); animate();
   window.addEventListener('resize', resize);
@@ -363,7 +374,9 @@ function setupInteraction() {
   $('#auto-rotate').addEventListener('click', () => { controls.autoRotate = !controls.autoRotate; $('#auto-rotate').setAttribute('aria-pressed', String(controls.autoRotate)); });
   $('#settings-toggle').addEventListener('click', () => { const panel = $('#settings-panel'); panel.hidden = !panel.hidden; $('#settings-toggle').setAttribute('aria-expanded', String(!panel.hidden)); });
   $('#settings-close').addEventListener('click', () => { $('#settings-panel').hidden = true; $('#settings-toggle').setAttribute('aria-expanded', 'false'); $('#settings-toggle').focus(); });
-  $('#studio-glass').addEventListener('change', (e) => { state.studio = e.target.checked; glass.forEach(g => { g.mesh.material = state.studio ? g.studio : g.original; }); });
+  $('#studio-glass').addEventListener('change', (e) => { state.studio = e.target.checked; updateTreatments(); });
+  $('#brown-finish').addEventListener('change', (e) => { state.brown = e.target.checked; updateTreatments(); });
+  $('#cinematic-finish').addEventListener('change', (e) => { state.finish = e.target.checked; updateTreatments(); });
   $('#show-labels').addEventListener('change', (e) => { state.labels = e.target.checked; });
   $('#camera-motion').addEventListener('change', (e) => { state.cinematic = e.target.checked; });
   $('#inspector-close').addEventListener('click', closeInspector);
@@ -396,6 +409,6 @@ window.addEventListener('pagehide', () => {
   disposed = true; cancelAnimationFrame(animationFrame); scrollTrigger?.kill(); controls?.dispose();
   gsap.killTweensOf(state); stopPlayback(); cameraTween?.kill();
   scene?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => m.dispose()); } });
-  glass.forEach(g => { g.original.dispose(); g.studio.dispose(); });
+  treatments.dispose();
   scene?.environment?.dispose(); composer?.dispose(); renderer?.dispose();
 });

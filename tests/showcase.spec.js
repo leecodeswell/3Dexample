@@ -17,24 +17,24 @@ async function setExplosion(page, value) {
 
 test('source transforms, reversible staging, scroll ownership, rotation, and settings', async ({ page }) => {
   const errors = await load(page);
-  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(11);
-  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(25);
+  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(12);
+  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(56);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(true);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
 
   await setExplosion(page, 150);
   const early = await page.evaluate(() => __watchShowcase.positions);
-  expect(early.glass[1]).toBeGreaterThan(0);
+  expect(early.glass[2]).toBeGreaterThan(0);
   expect(early.bracelet).toEqual([0, 0, 0]);
   await setExplosion(page, 1000);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(false);
   await expect(page.locator('#explosion-value')).toHaveText('100%');
   const full = await page.evaluate(() => __watchShowcase.positions);
-  expect(full.glass[1]).toBeGreaterThan(full.second[1]);
-  expect(full.second[1]).toBeGreaterThan(full.minute[1]);
-  expect(full.minute[1]).toBeGreaterThan(full.hour[1]);
-  expect(full.hour[1]).toBeGreaterThan(full.dial[1]);
-  expect(full.bracelet[1]).toBeLessThan(full.case[1]);
+  expect(full.glass[2]).toBeGreaterThan(full.second[2]);
+  expect(full.second[2]).toBeGreaterThan(full.minute[2]);
+  expect(full.minute[2]).toBeGreaterThan(full.hour[2]);
+  expect(full.hour[2]).toBeGreaterThan(full.dial[2]);
+  expect(full.bracelet[2]).toBeLessThan(full.case[2]);
 
   await page.locator('#reset-view').click();
   const glassLabel = page.getByRole('button', { name: 'Inspect glass' });
@@ -79,6 +79,12 @@ test('source transforms, reversible staging, scroll ownership, rotation, and set
 
   await page.locator('#settings-toggle').click();
   await expect(page.locator('#settings-panel')).toBeVisible();
+  expect(await page.evaluate(() => __watchShowcase.appearance.brown)).toBe(true);
+  await page.locator('#brown-finish').uncheck();
+  expect(await page.evaluate(() => __watchShowcase.appearance.brown)).toBe(false);
+  await page.locator('#brown-finish').check();
+  await page.locator('#cinematic-finish').uncheck();
+  expect(await page.evaluate(() => __watchShowcase.appearance.finish)).toBe(false);
   await page.locator('#studio-glass').uncheck();
   await page.locator('#show-labels').uncheck();
   await page.keyboard.press('Escape');

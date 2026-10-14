@@ -1,59 +1,64 @@
-# Source model inspection
+# Replacement watch model
 
-The file was inspected programmatically through its GLB JSON and buffer headers, imported with Blender 4.3.2, and checked through Three.js in Chromium. The complete machine-readable inventory is in `model-inventory.json`; regenerate it with `python3 tools/inspect_model.py --output docs/model-inventory.json`.
+The uploaded **Watch – Luxury Wristwatch 3D Model** was inspected through its GLB JSON, nested transforms, mesh bounds, embedded images, Blender import, and Three.js rendering. It replaces the old model entirely.
 
-- GLB 2.0; 5,458,100 bytes; embedded resources only.
-- One scene with 21 independent root nodes, 21 meshes, 25 material primitives, and seven source materials.
-- No authored animations, skeletons, or nested mechanical hierarchy.
-- 204,260 triangles. Source SHA-256: `9dd9489860aa2eee7f691b3dd2bcf3a2256e98a2cf2e5f5870309fb99f1b1535`.
+- Source: `public/watch__luxury_wristwatch_3d_model.glb` (5,987,516 bytes).
+- 109 nodes, 56 meshes / material primitives, 8 materials, and 4 embedded PNG textures.
+- 49,567 triangles; no authored animations or skeleton.
+- SHA-256: `9b99e7fd52a354d5718266b05c0a058e88419c4724d560ee539ca50c6056b34c`.
+- Authored hierarchy: `Sketchfab_model → WatchSECKO.fbx → RootNode → named transform nodes → material meshes`.
 
-| Source node(s) | Identified component | Runtime treatment |
+The full inventory is in `model-inventory.json`. `src/model-config.json` is the shared authoritative mapping used by the application and inspection scripts. Every source mesh appears exactly once across 12 logical components. The runtime validates complete coverage and duplicate assignments before showing the model.
+
+| Component | Source node indices | Treatment |
 | --- | --- | --- |
-| `Cylinder` | Case body and blue dial surface | Two existing material primitives (`body`, `digit place`). Reparent the dial primitive independently; no geometry split or new surfaces. |
-| `Cube.004` | Outer case/lug frame | Keep with the case body. |
-| `glass` | Glass shell | Independent forward lift, first in the sequence. |
-| `Cube.002` | Thin diagonal hand, treated as seconds | Independent forward lift. |
-| `Cube` | Short luminous hand, treated as hours | Independent forward lift. |
-| `Cube.001` | Long luminous hand, treated as minutes | Independent forward lift. |
-| `Cylinder.004`, `Cone` | Central hub and cap | Group into one hub component. |
-| `Text` through `Text.005`, `Plane`, `Curve` | Numerals, inscriptions, indices, luminous inlays, emblem | Keep with the blue dial surface. |
-| `Cylinder.003` | Side crown | Withdraw radially from the case. |
-| `Cylinder.006` | Paired spring bars | One joined mesh; animate together. |
-| `Cube.006` | Joined metal bracelet | Move the complete bracelet behind the case. |
-| `Cube.005`, `Cube.008` | Clasp plate and small detail | Group and separate behind the bracelet. |
+| Case / bezel / frame | 10, 37, 41, 51, 83, 87 | Keep textured case regions and inserts together. |
+| Glass | 45 | First forward separation; optional clear physical-glass finish. |
+| Dial and subdials | 4, 6, 8, 12, 13, 15, 23, 25, 27, 29, 31, 33, 53, 55, 57, 59, 61, 63, 65, 67, 69, 70, 72, 76, 78, 80, 81, 103, 108 | Keep inscriptions, indices, subdial hands, and face regions together. |
+| Hour hand | 21, 91 | Short hand plus its metal region. |
+| Minute hand | 17, 89 | Long hand plus its metal region. |
+| Seconds hand | 85 | Thin vertical hand. |
+| Central hub | 19 | Independent forward lift. |
+| Crown | 35 | Radial withdrawal along X. |
+| Lug assembly | 74, 95 | Joined lug regions move together. |
+| Bracelet | 47, 49, 93 | Multiple material regions of the joined bracelet stay together. |
+| Clasp | 43, 97, 98, 100, 101, 105, 106 | Clasp plate, inserts, and details move together. |
+| Caseback | 39 | Separate backward reveal. |
 
-The source names do not identify their functions. The classification above follows mesh dimensions, transformations, material regions, and a rendered inspection; hand roles follow their relative lengths and shapes, not semantic metadata. The JavaScript creates 11 logical component groups using loader node indices. All 25 original primitives remain in use.
+Classification follows geometry, world bounds, texture/material regions, and rendered inspection. Source names are generic and do not establish hand functions. The replacement's front face lies in XY; explosion follows Z. A uniform display scale and centering transform normalize the model without changing vertices, UVs, or normals. Reparenting retains each mesh's assembled world matrix, and tests verify exact reassembly within floating-point tolerance.
 
-## Geometry and material preservation
+## Chestnut brown and cinematic materials
 
-The application loads the source file byte-for-byte. It does not recalculate normals, decimate, remesh, add components, or rewrite materials in the GLB. Runtime `Object3D.attach()` retains original world transforms when organizing components. Explosion offsets are calculated from saved origins on every update, so reversing to zero reproduces the assembled transforms within floating-point tolerance. The browser integration test verifies every mesh's original world matrix after reassembly.
+The uploaded GLB is stored byte-for-byte. Its green **appearance** changes at runtime, and source textures remain available through the display settings.
 
-The original glass material is `alphaMode: BLEND` with alpha **1**, no transmission, and glTF's default metallic factor. It consequently behaves like an opaque reflective surface. The default **Studio vitrum** option uses a separate physical glass material with transmission and a low opacity. The untouched original material remains available by disabling that option in **STUDIUM**. Other source materials retain their original colors and roughness. Lighting, environment reflections, tone mapping, and subtle bloom create the photographic treatment.
+- **Patina brunnea:** a selective shader maps green-dominant pixels toward chestnut brown, preserving their luminance, speckle pattern, UVs, engraved markings, and neutral/white areas. This applies to the `Green` texture and green hues in the dial images.
+- **Materia cinematica:** physical metal treatments add controlled reflectivity, satin roughness, and subtle clearcoat. A generated normal map adds fine brushing to plain metal surfaces. Embedded image maps remain attached to their original material regions.
+- **Studio vitrum:** physical transmission, low roughness, and a restrained clearcoat improve the glass reflections. The source glass has alpha approximately 0.0168 and roughness approximately 0.821.
+- Studio softboxes, champagne rim lighting, restrained bloom, a soft vignette, fine grain, and warm color grading complete the treatment.
 
-## What cannot be revealed from this asset
+The three appearance options can be disabled independently in **STUDIUM**. The upload is not baked or re-exported; these are reversible presentation changes.
 
-There is **no modeled mechanical movement, gear train, escapement, balance wheel, winding mechanism, or independent caseback**. The case has no inner mechanism to expose. The animation deliberately does not present fabricated mechanical parts. A complete mechanical advertisement requires a more detailed movement asset or manual modeling.
+There is no independently modeled internal gear train. Subdial imagery is part of the texture, and the joined bracelet does not provide per-link pivots. The animation does not infer mechanical parts from pixels.
 
-The bracelet's links are contained in one mesh; they have no individual pivots. The paired spring bars are also a single mesh. Loose-island separation might yield some independent pieces, but connected links, overlapping surfaces, and material regions must be reviewed before treating them as manufactured components. Automated loose-part separation would not establish articulation, link order, or reliable joint pivots.
+## Blender authoring
 
-The source includes its own modeled brand inscriptions. They are retained along with the original geometry; AETERNUM is Latin placeholder branding for the website only.
-
-## Optional Blender preparation
-
-No Blender modification is required by the website. For further asset authoring:
+No Blender modifications are needed by the website. The updated optional script organizes the 56 source mesh objects into component collections, retains authored parents and materials, and writes a distinct `.blend` file:
 
 ```sh
 blender -b --factory-startup --python-exit-code 1 \
   --python tools/prepare_blender.py -- \
-  --output /workspace/scratch/watch-prepared.blend
+  --output /workspace/scratch/luxury-watch-prepared.blend
 ```
 
-This tested script imports the source, separates the existing case and dial material regions, assigns component metadata, and creates component collections. It creates 22 objects and retains 204,260 polygons. It refuses to overwrite an existing output. It never exports over the source GLB. The generated `/workspace/scratch/watch-prepared.blend` is an optional local authoring artifact, not a website dependency.
+Verified with Blender 4.3.2: 56 objects and 49,567 polygons. Output is outside the checkout; the script refuses to overwrite an existing output.
 
-Manual authoring required for a richer asset:
+## Attribution
 
-1. Model or supply the actual movement, individual gears, and escapement; establish physically meaningful pivots and gear ratios.
-2. Model a separate caseback and any missing inner case surfaces.
-3. Review and separate bracelet links and paired spring bars, then set pivots and grouping manually.
-4. Validate source inscriptions, shading, surface finishes, and a physically accurate glass export in Blender.
-5. Export a **new** GLB and update the inspected component mapping. Do not overwrite the original without explicitly deciding to replace it.
+**Watch – Luxury Wristwatch 3D Model** by **DevPoly3D** is licensed under **CC BY 4.0**, as recorded in the uploaded GLB metadata.
+
+- Author: https://sketchfab.com/DevPoly3D
+- Source: https://sketchfab.com/3d-models/watch-luxury-wristwatch-3d-model-693e3e5fc41b42c5af35bc965ab70014
+- License: https://creativecommons.org/licenses/by/4.0/
+- Presentation modifications: runtime brown recoloring, material finish changes, component grouping/animation, and cinematic lighting/postprocessing. Source geometry and embedded images are retained.
+
+Attribution is also available in the website's display-settings panel. Original modeled/photographed inscriptions remain in the asset; AETERNUM is website placeholder branding.

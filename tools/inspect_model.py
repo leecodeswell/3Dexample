@@ -8,29 +8,9 @@ import json
 import struct
 from pathlib import Path
 
-CATEGORIES = {
-    0: ('case_and_dial', 'Two existing material primitives: body and dial surface; separable at runtime.'),
-    1: ('crown', 'Independent crown mesh.'),
-    2: ('case_frame', 'Independent outer case / lug frame.'),
-    3: ('bracelet', 'Joined bracelet mesh. Links are not independent scene nodes.'),
-    4: ('spring_bars', 'Two spring bars joined into one mesh; move together.'),
-    5: ('clasp', 'Independent clasp plate.'),
-    6: ('clasp_detail', 'Independent clasp pin/detail; grouped with clasp.'),
-    7: ('glass', 'Independent glass shell; exported alphaMode BLEND with alpha 1.'),
-    8: ('dial_numeral', 'Keep attached to dial surface.'),
-    9: ('dial_numeral', 'Keep attached to dial surface.'),
-    10: ('dial_numeral', 'Keep attached to dial surface.'),
-    11: ('dial_numeral', 'Keep attached to dial surface.'),
-    12: ('dial_inscription', 'Keep attached to dial surface.'),
-    13: ('dial_inscription', 'Keep attached to dial surface.'),
-    14: ('dial_indices', 'Indices with luminous inlays; keep attached to dial.'),
-    15: ('dial_emblem', 'Keep attached to dial surface.'),
-    16: ('hand_hub', 'Independent central hub.'),
-    17: ('hand_cap', 'Independent central cap.'),
-    18: ('second_hand', 'Thin diagonal hand; independent transform.'),
-    19: ('hour_hand', 'Short luminous hand; independent transform.'),
-    20: ('minute_hand', 'Long luminous hand; independent transform.'),
-}
+ROOT = Path(__file__).resolve().parents[1]
+CONFIG = json.loads((ROOT / 'src/model-config.json').read_text())
+CATEGORIES = {i: (role, 'Source mesh grouped as ' + role) for role, nodes in CONFIG['memberships'].items() for i in nodes}
 
 
 def inspect(path):
@@ -70,7 +50,7 @@ def inspect(path):
                 'triangle_count': document['accessors'][primitive['indices']]['count'] // 3 if 'indices' in primitive else accessor['count'] // 3,
                 'local_bounds': {'min': accessor.get('min'), 'max': accessor.get('max')},
             })
-        role, notes = CATEGORIES.get(index, ('unknown', 'Needs inspection'))
+        role, notes = CATEGORIES.get(index, ('assembly', 'Authored hierarchy/container transform'))
         inventory.append({
             'node_index': index, 'name': node.get('name'), 'parent_node': parents.get(index),
             'children': node.get('children', []), 'mesh_index': node.get('mesh'),
@@ -84,19 +64,20 @@ def inspect(path):
         'asset': document['asset'], 'scene_roots': document['scenes'][document.get('scene', 0)].get('nodes', []),
         'node_count': len(document['nodes']), 'mesh_count': len(document['meshes']),
         'primitive_count': sum(len(n['primitives']) for n in inventory),
-        'materials': document['materials'],
+        'materials': document['materials'], 'images': document.get('images', []),
+        'logical_components': CONFIG['memberships'],
         'external_resources': [item['uri'] for key in ('buffers', 'images') for item in document.get(key, []) if 'uri' in item and not item['uri'].startswith('data:')],
         'animations': len(document.get('animations', [])), 'skins': len(document.get('skins', [])),
         'nodes': inventory,
-        'limitations': ['No mechanical movement, gears, escapement, or independently modeled caseback are present.',
-                        'Bracelet links and paired spring bars are joined; runtime animation treats each mesh as one component.',
-                        'Glass is geometrically independent but its original material exports alpha=1. Optional studio material is a runtime override.'],
+        'limitations': ['No independently modeled mechanical gear train is present.',
+                         'Bracelet links are joined within meshes; the clasp and caseback are separate.',
+                         'Chestnut color and cinematic material finishes are reversible runtime treatments.'],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('asset', nargs='?', type=Path, default=Path(__file__).resolve().parents[1] / 'mechanical watch.glb')
+    parser.add_argument('asset', nargs='?', type=Path, default=ROOT / 'public' / CONFIG['asset'].lstrip('/'))
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     result = json.dumps(inspect(args.asset), indent=2)
