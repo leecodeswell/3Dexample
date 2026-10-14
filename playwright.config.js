@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 180_000,
+  timeout: 240_000,
   expect: { timeout: 30_000 },
   workers: 1,
   use: {

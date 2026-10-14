@@ -1,6 +1,7 @@
 import './style.css';
 import modelConfig from './model-config.json';
 import { createTreatments } from './materials.js';
+import { samplePose } from './choreography.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -25,10 +26,12 @@ const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const chapters = [
-  { eyebrow: 'TEMPUS, IN FORMA', title: 'Ars longa.<br><em>Tempus breve.</em>', description: 'In singulis partibus, universum.<br>Forma, materia et motus in perfecta concordia.', name: 'FORMA PERFECTA', action: 'EXPLORA OPUS' },
-  { eyebrow: 'ANATOMIA TEMPORIS', title: 'Singula.<br><em>Mirabilia.</em>', description: 'Quod oculus non videt, ars revelat.<br>Unum opus. Multae formae. Una essentia.', name: 'ORDO ET MATERIA', action: 'REVELA PARTES' },
+  { eyebrow: 'TEMPUS, IN FORMA', title: 'Tempus.<br><em>Ex machina.</em>', description: 'In singulis partibus, universum.<br>Forma, materia et motus in perfecta concordia.', name: 'FORMA PERFECTA', action: 'EXPLORA OPUS' },
+  { eyebrow: 'ANATOMIA TEMPORIS', title: 'Intus.<br><em>Mirabilia.</em>', description: 'Aurum, rotae, motus.<br>Ars mechanica sub lumine revelatur.', name: 'ORDO ET MATERIA', action: 'REVELA PARTES' },
   { eyebrow: 'ESSENTIA REVELATA', title: 'Omnia.<br><em>In uno.</em>', description: 'Vitrum, argentum, lumen.<br>Perfectio ex singulis partibus nascitur.', name: 'ESSENTIA REVELATA', action: 'REDI AD INITIUM' },
 ];
+let watchRoot;
+let renderDirty = true;
 let chapter = -1, renderer, composer, camera, controls, scene, bloom, explosionTween, cameraTween;
 let animationFrame, scrollTrigger, lastInteraction = 0, clickStart, disposed = false;
 let scrollIntent = true;
@@ -38,6 +41,7 @@ const treatments = createTreatments();
 const treatedMeshes = [];
 const glass = [];
 function updateTreatments() {
+  renderDirty = true;
   for (const record of treatedMeshes) {
     record.mesh.material = record.variants.map(v => {
       const useStudio = v.original.name === 'Glass' ? state.studio : state.finish;
@@ -98,21 +102,40 @@ const definitions = {
   clasp: { title: 'Fibula', subtitle: 'VI / FIBULA', description: 'Ultima pars, perfecta clausura. Fibula et parvus cardo simul moventur.', offset: [0, 0, -1.35], range: [.61, 1], anchor: [.3, 0, -2.1] },
 };
 
+Object.assign(definitions, {
+  movement: { title: 'Machina', subtitle: 'IV / MACHINA', description: 'Intus, ars vivit. Rotae, axes et materia in concordia.', offset: [0, 0, .35], range: [.28, .64], anchor: [.45, -.15, .08] },
+  bridges: { title: 'Pontes', subtitle: 'V / PONTES', description: 'Pontes et cochleae. Forma subtilis motum custodit.', offset: [.18, .12, 1.38], range: [.36, .78], anchor: [.55, .3, .08] },
+  tourbillon: { title: 'Tourbillon', subtitle: 'VI / TOURBILLON', description: 'In parva machina, perpetuus motus. Aurum et aequilibrium.', offset: [0, .55, 1.1], range: [.42, .88], anchor: [.05, .1, 0] },
+});
+for (let i = 0; i < 16; i++) {
+  const angle = i / 16 * Math.PI * 2;
+  definitions[`gear${String(i + 1).padStart(2, '0')}`] = {
+    title: `Rota ${String(i + 1).padStart(2, '0')}`, subtitle: `VII / ROTA ${String(i + 1).padStart(2, '0')}`,
+    description: 'Dentes, axis, aurum. Una pars in magno motu.',
+    offset: [Math.cos(angle) * (.48 + i % 3 * .18), Math.sin(angle) * .5, .68 + i % 5 * .12],
+    range: [.45 + i % 4 * .025, .94], anchor: [.12, 0, 0], spin: (i % 2 ? -1 : 1) * (1.0 + i % 3 * .25),
+  };
+}
+
 function applyExplosion() {
+  renderDirty = true;
   for (const part of parts.values()) {
     const t = smoothStep(...part.range, state.progress);
     part.group.position.copy(part.origin).addScaledVector(part.offset, t);
   }
-  displayProgress(state.progress);
-  // Values are interpolated rather than accumulated: reversing returns every transform exactly.
-  const p = smoothStep(0, 1, state.progress);
-  if (mobile()) {
-    cinematicPosition.set(3.4 + p * 2.2, -3.1 + p * .7, 8.1 + p * 1.4);
-    cinematicTarget.set(0, -.2, -.75 + p * 1.0);
-  } else {
-    cinematicPosition.set(3.0 + p * 5.6, -2.6 + p * 5, 6.8 + p * .4);
-    cinematicTarget.set(0, 0, -.72 + p * 1.4);
+  for (const [key, part] of parts) {
+    if (key.startsWith('gear')) {
+      const phase = smoothStep(.40, 1, state.progress);
+      part.group.rotation.z = phase === 0 ? 0 : phase * part.spin * Math.PI * 2;
+    }
+    if (key === 'tourbillon') part.group.rotation.z = smoothStep(.34, 1, state.progress) * Math.PI * 2;
   }
+  displayProgress(state.progress);
+  const pose = samplePose(state.progress, mobile());
+  if (watchRoot) watchRoot.rotation.set(...(state.cinematic ? pose.rotation : samplePose(0).rotation));
+  cinematicPosition.fromArray(pose.eye);
+  cinematicTarget.fromArray(pose.target);
+
 }
 
 function stopPlayback() {
@@ -150,40 +173,62 @@ function focusPart(key) {
 
 async function loadWatch() {
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync(modelConfig.asset, (e) => {
-    if (e.total) $('#load-percent').textContent = `${Math.round(e.loaded / e.total * 100)}%`;
-  });
-  const model = new THREE.Group(); scene.add(model);
-  gltf.scene.scale.setScalar(modelConfig.scale);
-  gltf.scene.position.fromArray(modelConfig.center).multiplyScalar(-modelConfig.scale);
-  model.add(gltf.scene); scene.updateMatrixWorld(true);
+  watchRoot = new THREE.Group(); scene.add(watchRoot);
+  watchRoot.rotation.set(...samplePose(0).rotation);
   const sourceWorld = new Map();
-  gltf.scene.traverse(o => { if (o.isMesh) sourceWorld.set(o, o.matrixWorld.clone()); });
-  if (sourceWorld.size !== modelConfig.meshCount) throw new Error('Uploaded model mesh count does not match its inspected mapping.');
-  const nodes = await Promise.all(gltf.parser.json.nodes.map((_, i) => gltf.parser.getDependency('node', i)));
-  const assigned = new Set();
-  for (const [key, indices] of Object.entries(modelConfig.memberships)) {
-    const group = new THREE.Group(); group.name = `component_${key}`; model.add(group);
-    for (const index of indices) {
-      const node = nodes[index];
-      if (!node.isMesh || assigned.has(node)) throw new Error(`Invalid or duplicated source node ${index}`);
-      assigned.add(node); group.attach(node);
-    }
-    const def = definitions[key];
-    parts.set(key, { ...def, group, origin: group.position.clone(), offset: new THREE.Vector3(...def.offset), range: def.range });
-    group.traverse(child => {
-      if (!child.isMesh) return;
-      child.userData.part = key; pickable.push(child);
-      const array = Array.isArray(child.material);
-      const materials = array ? child.material : [child.material];
-      treatedMeshes.push({ mesh: child, array, variants: materials.map(treatments.variants) });
-      if (materials.some(m => m.name === 'Glass')) { child.renderOrder = 2; glass.push(child); }
+  const expectedCount = modelConfig.selectedMeshCount;
+  let complete = 0;
+  for (const source of modelConfig.sources) {
+    const gltf = await loader.loadAsync(source.asset, (e) => {
+      if (e.total) $('#load-percent').textContent = `${Math.round((complete + e.loaded / e.total) / modelConfig.sources.length * 100)}%`;
     });
+    const nativeMeshes = []; gltf.scene.traverse(o => { if (o.isMesh) nativeMeshes.push(o); });
+    if (nativeMeshes.length !== source.sourceMeshCount) throw new Error(`Source mesh count changed: ${source.id}`);
+    gltf.scene.scale.setScalar(source.scale);
+    gltf.scene.position.fromArray(source.center).multiplyScalar(-source.scale);
+    watchRoot.add(gltf.scene); scene.updateMatrixWorld(true);
+    const nodes = await Promise.all(gltf.parser.json.nodes.map((_, i) => gltf.parser.getDependency('node', i)));
+    const selected = new Set(Object.values(source.memberships).flat().map(index => nodes[index]));
+    for (const mesh of nativeMeshes) {
+      if (!selected.has(mesh)) mesh.removeFromParent();
+      else sourceWorld.set(mesh, mesh.matrixWorld.clone());
+    }
+    const assigned = new Set();
+    for (const [key, indices] of Object.entries(source.memberships)) {
+      const group = new THREE.Group(); group.name = `component_${key}`; watchRoot.add(group);
+      if (source.pivots?.[key] !== undefined) {
+        const pivot = nodes[source.pivots[key]].getWorldPosition(new THREE.Vector3());
+        group.position.copy(watchRoot.worldToLocal(pivot)); group.updateMatrixWorld(true);
+      }
+      for (const index of indices) {
+        const node = nodes[index];
+        if (!node.isMesh || assigned.has(node)) throw new Error(`Invalid or duplicated source node ${source.id}:${index}`);
+        assigned.add(node);
+        // Preserve full affine transforms. TRS decomposition loses the shear created
+        // by rotated, nonuniform scales in the imported mechanical hierarchy.
+        group.updateWorldMatrix(true, false);
+        const local = group.matrixWorld.clone().invert().multiply(sourceWorld.get(node));
+        group.add(node); node.matrixAutoUpdate = false; node.matrix.copy(local);
+        node.matrixWorldNeedsUpdate = true;
+      }
+      const def = definitions[key];
+      parts.set(key, { ...def, group, origin: group.position.clone(), offset: new THREE.Vector3(...def.offset), range: def.range });
+      group.traverse(child => {
+        if (!child.isMesh) return;
+        child.userData.part = key; child.userData.source = source.id; pickable.push(child);
+        const array = Array.isArray(child.material);
+        const materials = array ? child.material : [child.material];
+        treatedMeshes.push({ mesh: child, array, variants: materials.map(treatments.variants) });
+        if (materials.some(m => m.name === 'Glass')) child.renderOrder = 2;
+      });
+    }
+    if (assigned.size !== selected.size) throw new Error(`Incomplete component mapping: ${source.id}`);
+    complete++;
   }
-  if (assigned.size !== sourceWorld.size) throw new Error('Some source meshes are missing from the component mapping.');
+  if (sourceWorld.size !== expectedCount) throw new Error('Hybrid component coverage failed.');
   updateTreatments();
   // Seven restrained labels; all actual meshes remain available by clicking.
-  for (const key of ['glass', 'second', 'dial', 'case', 'crown', 'bracelet', 'backplate', 'clasp']) {
+  for (const key of ['glass', 'tourbillon', 'gear01', 'movement', 'bridges', 'case', 'bracelet']) {
     const el = document.createElement('div'); el.className = 'part-label';
     const button = document.createElement('button'); button.textContent = parts.get(key).subtitle;
     button.setAttribute('aria-label', `Inspect ${key}`); button.tabIndex = -1;
@@ -198,6 +243,9 @@ async function loadWatch() {
     get progress() { return state.progress; },
     get parts() { return [...parts.keys()]; },
     get meshCount() { return pickable.length; },
+    get modelRotation() { return watchRoot.rotation.toArray().slice(0, 3); },
+    get gearRotations() { return Object.fromEntries([...parts].filter(([k]) => k.startsWith('gear')).map(([k,p]) => [k,p.group.rotation.z])); },
+    get sourceCounts() { return { exterior: pickable.filter(m => m.userData.source === 'exterior').length, mechanism: pickable.filter(m => m.userData.source === 'mechanism').length }; },
     get appearance() { return { brown: state.brown, finish: state.finish, studioGlass: state.studio }; },
     get cameraPosition() { return camera.position.toArray(); },
     get sourceTransformsMatch() { scene.updateMatrixWorld(true); return [...sourceWorld].every(([mesh, matrix]) => mesh.matrixWorld.elements.every((value, i) => Math.abs(value - matrix.elements[i]) < 1e-6)); },
@@ -213,7 +261,7 @@ function resize() {
   camera.aspect = width / height; camera.updateProjectionMatrix();
   renderer.setSize(width, height, false); composer.setSize(width, height);
   // Responsive FOV keeps the entire original bracelet visible at every breakpoint.
-  camera.fov = mobile() ? 37 : 38; camera.updateProjectionMatrix();
+  camera.fov = mobile() ? 42 : 36; camera.updateProjectionMatrix();
   applyExplosion();
   if (!state.interacting && !state.focused) {
     camera.position.copy(cinematicPosition); controls.target.copy(cinematicTarget);
@@ -232,7 +280,7 @@ function updateLabels() {
     let y = stageRect.top + (1 - point.y) / 2 * stageRect.height;
     const onScreen = point.z < 1 && point.z > -1 && x > stageRect.left + 10 && x < innerWidth - 85 && y > 170 && y < innerHeight - 170;
     let show = visible && onScreen && !state.focused;
-    if (mobile() && !['glass', 'dial', 'bracelet'].includes(label.key)) show = false;
+    if (mobile() && !['tourbillon', 'movement', 'bracelet'].includes(label.key)) show = false;
     if (placed.some(p => Math.abs(p.x - x) < 100 && Math.abs(p.y - y) < 23)) show = false;
     if (show) placed.push({ x, y });
     label.el.style.left = `${x}px`; label.el.style.top = `${y}px`;
@@ -245,7 +293,7 @@ function updateLabels() {
 function animate() {
   if (disposed) return;
   animationFrame = requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), .05);
+  const dt = clock.getDelta();
   if (state.ready) {
     const canFollow = state.cinematic && !state.manualView && !state.interacting && !state.focused && !controls.autoRotate && performance.now() - lastInteraction > 4500;
     if (canFollow && !cameraTween?.isActive()) {
@@ -253,20 +301,21 @@ function animate() {
       camera.position.lerp(cinematicPosition, alpha);
       controls.target.lerp(cinematicTarget, alpha);
     }
-    controls.update(); scene.updateMatrixWorld(); updateLabels();
+    controls.update(Math.min(dt, .25)); scene.updateMatrixWorld(); updateLabels();
   }
-  composer.render();
+  if (renderDirty) { composer.render(); renderDirty = false; }
 }
 
 function setupScene() {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, mobile() ? 1.5 : 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .9;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .70;
   renderer.setClearColor(0x141613, 0);
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(38, 1, .05, 70);
   controls = new OrbitControls(camera, canvas);
+  controls.addEventListener('change', () => { renderDirty = true; });
   controls.enableDamping = true; controls.dampingFactor = .07; controls.enablePan = false;
   controls.minDistance = 3; controls.maxDistance = 19; controls.autoRotateSpeed = .45;
   controls.enableZoom = true; controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
@@ -296,14 +345,14 @@ function setupScene() {
   });
   const envGenerator = new THREE.PMREMGenerator(renderer);
   const studioEnv = envGenerator.fromScene(envScene, .025);
-  scene.environment = studioEnv.texture; scene.environmentIntensity = 1.0;
+  scene.environment = studioEnv.texture; scene.environmentIntensity = .78;
   envGenerator.dispose(); softboxes.forEach(m => { m.geometry.dispose(); m.material.dispose(); });
   const key = new THREE.DirectionalLight(0xffedce, 1.1); key.position.set(-3, 6, 7); scene.add(key);
   const fill = new THREE.DirectionalLight(0xc7dded, .45); fill.position.set(5, -1, 3); scene.add(fill);
   const rim = new THREE.DirectionalLight(0xf2d1a0, 1.3); rim.position.set(-4, -3, -2); scene.add(rim);
   scene.add(new THREE.AmbientLight(0xd3dcc5, .12));
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
-  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .065, .4, 1.5); composer.addPass(bloom);
+  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .035, .4, 1.8); composer.addPass(bloom);
   composer.addPass(new ShaderPass({
     uniforms: { tDiffuse: { value: null } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
@@ -378,7 +427,7 @@ function setupInteraction() {
   $('#brown-finish').addEventListener('change', (e) => { state.brown = e.target.checked; updateTreatments(); });
   $('#cinematic-finish').addEventListener('change', (e) => { state.finish = e.target.checked; updateTreatments(); });
   $('#show-labels').addEventListener('change', (e) => { state.labels = e.target.checked; });
-  $('#camera-motion').addEventListener('change', (e) => { state.cinematic = e.target.checked; });
+  $('#camera-motion').addEventListener('change', (e) => { state.cinematic = e.target.checked; applyExplosion(); });
   $('#inspector-close').addEventListener('click', closeInspector);
   $('#reload-button').addEventListener('click', () => location.reload());
   $('#explore-button').addEventListener('click', () => navigate(chapter === 2 ? 0 : chapter + 1));

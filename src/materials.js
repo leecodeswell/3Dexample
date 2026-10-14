@@ -43,9 +43,9 @@ export function createTreatments() {
     const name = original.name;
     if (name === 'Glass') {
       studio.color.set('#f5ece0'); studio.metalness = 0; studio.roughness = .07;
-      studio.transmission = .95; studio.thickness = .07; studio.ior = 1.46;
-      studio.opacity = .18; studio.transparent = true; studio.depthWrite = false;
-      studio.clearcoat = 1; studio.clearcoatRoughness = .035;
+      studio.transmission = .98; studio.thickness = .025; studio.ior = 1.46;
+      studio.opacity = .055; studio.transparent = true; studio.depthWrite = false;
+      studio.clearcoat = .45; studio.clearcoatRoughness = .035;
     } else if (['MetalGrey', 'Image', 'Image2', 'DarkPins.001'].includes(name)) {
       studio.metalness = name === 'MetalGrey' ? .92 : .72;
       studio.roughness = name === 'MetalGrey' ? .29 : .34;
@@ -56,6 +56,18 @@ export function createTreatments() {
     } else if (name === 'Green') {
       studio.metalness = .55; studio.roughness = .30;
       studio.clearcoat = .45; studio.clearcoatRoughness = .16;
+    }
+    // Keep the mechanical gold warm and polish the imported blue steel gently.
+    if (name.includes('gold') || name.includes('send_me_your_final_work')) {
+      studio.color.set('#c9955a');
+      studio.metalness = .94; studio.roughness = Math.max(original.roughness, .28);
+      studio.clearcoat = .22; studio.clearcoatRoughness = .18;
+    } else if (name === 'enjoy_the_model') {
+      studio.color.set('#667076'); studio.metalness = .93; studio.roughness = .32;
+    } else if (name.includes('Metaliron') || name.includes('Metal/iron') || name.startsWith('MetalSteel') || name.startsWith('MetalMachining')) {
+      studio.color.set('#626d7a'); studio.metalness = .90; studio.roughness = .28;
+    } else if (name.includes('Opaque_Plastic') || name.includes('Opaque Plastic')) {
+      studio.color.set('#8b334a'); studio.metalness = .1; studio.roughness = .18; studio.clearcoat = .8;
     }
     const brownStudio = brownShader(studio.clone());
     const value = { original, brown, studio, brownStudio }; cache.set(original, value); return value;

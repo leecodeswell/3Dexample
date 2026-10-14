@@ -17,8 +17,8 @@ async function setExplosion(page, value) {
 
 test('source transforms, reversible staging, scroll ownership, rotation, and settings', async ({ page }) => {
   const errors = await load(page);
-  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(12);
-  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(56);
+  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(30);
+  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(101);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(true);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
 
@@ -33,7 +33,7 @@ test('source transforms, reversible staging, scroll ownership, rotation, and set
   expect(full.glass[2]).toBeGreaterThan(full.second[2]);
   expect(full.second[2]).toBeGreaterThan(full.minute[2]);
   expect(full.minute[2]).toBeGreaterThan(full.hour[2]);
-  expect(full.hour[2]).toBeGreaterThan(full.dial[2]);
+  expect(full.hour[2]).toBeGreaterThan(full.bridges[2]);
   expect(full.bracelet[2]).toBeLessThan(full.case[2]);
 
   await page.locator('#reset-view').click();
@@ -108,5 +108,30 @@ test('mobile viewport keeps manual controls usable and avoids horizontal overflo
   await page.setViewportSize({ width: 844, height: 390 });
   await expect(page.locator('#explosion-slider')).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('hybrid combines actual mechanisms and uses a reversible full-page turn', async ({ page }) => {
+  const errors = await load(page);
+  expect(await page.evaluate(() => __watchShowcase.sourceCounts)).toEqual({ exterior: 27, mechanism: 74 });
+  expect(Object.keys(await page.evaluate(() => __watchShowcase.gearRotations))).toHaveLength(16);
+  const stage = await page.locator('#stage').boundingBox();
+  expect(stage.x).toBe(0); expect(stage.y).toBe(0);
+  expect(stage.width).toBe(1200); expect(stage.height).toBe(800);
+  await page.locator('#settings-toggle').click();
+  await page.locator('#camera-motion').check();
+  await page.keyboard.press('Escape');
+  const assembledRotation = await page.evaluate(() => __watchShowcase.modelRotation);
+  await setExplosion(page, 460);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(1.25, 2);
+  expect(Object.values(await page.evaluate(() => __watchShowcase.gearRotations)).some(v => Math.abs(v) > .01)).toBe(true);
+  await setExplosion(page, 700);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(3.25, 2);
+  await setExplosion(page, 1000);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(5.7, 2);
+  await setExplosion(page, 0);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation)).toEqual(assembledRotation);
+  expect(Object.values(await page.evaluate(() => __watchShowcase.gearRotations))).toEqual(Array(16).fill(0));
+  expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
   expect(errors).toEqual([]);
 });

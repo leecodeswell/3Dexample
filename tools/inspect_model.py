@@ -10,10 +10,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / 'src/model-config.json').read_text())
-CATEGORIES = {i: (role, 'Source mesh grouped as ' + role) for role, nodes in CONFIG['memberships'].items() for i in nodes}
 
 
-def inspect(path):
+def inspect(path, source=None):
+    source = source or next((s for s in CONFIG['sources'] if Path(s['asset']).name == path.name), {'memberships': {}})
+    categories = {i: (role, 'Selected hybrid mesh grouped as ' + role) for role, nodes in source['memberships'].items() for i in nodes}
     blob = path.read_bytes()
     magic, version, length = struct.unpack_from('<4sII', blob)
     if magic != b'glTF' or version != 2 or length != len(blob):
@@ -50,7 +51,7 @@ def inspect(path):
                 'triangle_count': document['accessors'][primitive['indices']]['count'] // 3 if 'indices' in primitive else accessor['count'] // 3,
                 'local_bounds': {'min': accessor.get('min'), 'max': accessor.get('max')},
             })
-        role, notes = CATEGORIES.get(index, ('assembly', 'Authored hierarchy/container transform'))
+        role, notes = categories.get(index, ('excluded' if mesh else 'assembly', 'Unused source mesh' if mesh else 'Authored hierarchy/container transform'))
         inventory.append({
             'node_index': index, 'name': node.get('name'), 'parent_node': parents.get(index),
             'children': node.get('children', []), 'mesh_index': node.get('mesh'),
@@ -65,22 +66,23 @@ def inspect(path):
         'node_count': len(document['nodes']), 'mesh_count': len(document['meshes']),
         'primitive_count': sum(len(n['primitives']) for n in inventory),
         'materials': document['materials'], 'images': document.get('images', []),
-        'logical_components': CONFIG['memberships'],
+        'logical_components': source['memberships'],
         'external_resources': [item['uri'] for key in ('buffers', 'images') for item in document.get(key, []) if 'uri' in item and not item['uri'].startswith('data:')],
         'animations': len(document.get('animations', [])), 'skins': len(document.get('skins', [])),
         'nodes': inventory,
-        'limitations': ['No independently modeled mechanical gear train is present.',
-                         'Bracelet links are joined within meshes; the clasp and caseback are separate.',
-                         'Chestnut color and cinematic material finishes are reversible runtime treatments.'],
+        'selected_mesh_count': sum(len(v) for v in source['memberships'].values()),
+        'limitations': ['Hybrid is a designed combination of two models, not a certified physical mechanism.',
+                         'Authored meshes, UVs, normals, and source images are preserved. Runtime poses and finishes are reversible.'],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('asset', nargs='?', type=Path, default=ROOT / 'public' / CONFIG['asset'].lstrip('/'))
+    parser.add_argument('asset', nargs='?', type=Path)
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
-    result = json.dumps(inspect(args.asset), indent=2)
+    report = inspect(args.asset) if args.asset else {'selected_mesh_count': CONFIG['selectedMeshCount'], 'component_count': sum(len(s['memberships']) for s in CONFIG['sources']), 'sources': [inspect(ROOT / 'public' / s['asset'].lstrip('/'), s) for s in CONFIG['sources']]}
+    result = json.dumps(report, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(result + '\n')

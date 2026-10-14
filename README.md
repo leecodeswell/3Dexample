@@ -1,6 +1,6 @@
 # AETERNUM — interactive watch showcase
 
-A full-screen, responsive Three.js product study using the uploaded luxury wristwatch GLB. Latin placeholder copy, ivory typography, dark olive studio lighting, photographic reflections, and restrained bloom.
+A full-screen, responsive Three.js product study combining a luxury exterior with an actual mechanical gear-and-tourbillon model. The oversized watch fills the page behind the editorial layout. Latin placeholder copy, ivory typography, dark olive studio lighting, photographic reflections, and restrained bloom.
 
 ## Run
 
@@ -20,7 +20,7 @@ The production site is generated in `dist/`. Deploy that directory to any static
 
 ## Explore
 
-- **Scroll:** three chapters progressively separate glass, hands, hub, dial, case, crown, lugs, bracelet, clasp, and caseback. Scrolling upward reverses the sequence.
+- **Scroll:** three chapters turn the whole watch through front, side, rear and three-quarter views while separating glass, hands, movement, bridges, 16 gear meshes, tourbillon, case and bracelet. Scrolling upward reverses both rotation and separation.
 - **Slider:** directly choose any separation amount independently of the page position. The next scroll gesture resumes scroll control.
 - **Play:** cinematic nine-second reveal; pause at any point. At full separation, play returns to the assembled watch.
 - **Drag:** orbit freely. Right-drag or Ctrl-wheel zooms; normal wheel scrolling advances the page. On touch devices, horizontal drags rotate, vertical gestures scroll, and two-finger gestures provide camera control where supported.
@@ -32,11 +32,11 @@ User rotation is retained until the user resets the camera or resumes the explos
 
 ## The actual model
 
-The replacement has 109 nodes, 56 meshes, four embedded textures, and 12 logical component groups. The old GLB has been removed. The uploaded file is preserved byte-for-byte in `public/watch__luxury_wristwatch_3d_model.glb`.
+The hybrid uses **27 exterior meshes** from `watch__luxury_wristwatch_3d_model.glb` and **74 mechanical meshes** from `arnoldson_watch_mechanical.glb`. The 101 selected meshes form 30 component groups, including 16 separately controlled gear meshes and a tourbillon. The old flat chronograph face is excluded to expose the actual mechanism.
 
-Green accents now appear chestnut brown through a reversible shader that preserves texture detail. Physical metal finishes add fine brushing and reflections; glass gets a clearer transmission treatment. Warm grading, fine grain, a vignette, and subtle bloom complete the cinematic appearance. Disable the appearance options in STUDIUM to inspect the source textures/materials.
+Both source files are retained unchanged in `public/`. Brown accents, satin steel, warm gold and ruby-like bearings combine the two designs. Source materials remain selectable through STUDIUM. The composition is a designed hybrid visualization, with illustrative gear motion rather than validated engineering ratios.
 
-See [the replacement model inventory and attribution](docs/MODEL.md), [the machine-readable inventory](docs/model-inventory.json), and [the optional Blender preparation script](tools/prepare_blender.py). Model by **DevPoly3D**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with credits in the display-settings panel. No independent gear train is present in the asset.
+See [the hybrid model inspection and attribution](docs/MODEL.md), [the complete inventories](docs/model-inventory.json), and [the tested Blender assembly helper](tools/prepare_blender.py). Exterior by **DevPoly3D**, mechanism by **abdelghani.0**; both [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Credits appear in the display-settings panel.
 
 ## Validation
 
@@ -45,15 +45,16 @@ python3 tools/inspect_model.py
 npm test
 ```
 
-Browser tests use the system Chromium when available. Otherwise run `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to your Chromium executable. They verify the original assembled mesh transforms, meaningful staged separation, exact reassembly, scroll takeover after manual input, orbit interaction, settings, and mobile controls. The initial shaders compile once; software-rendered tests can take around a minute.
+Browser tests use the system Chromium when available. Otherwise run `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to your Chromium executable. They verify the original assembled mesh transforms, meaningful staged separation, exact reassembly, scroll takeover after manual input, orbit interaction, settings, and mobile controls. The initial shaders compile once; software-rendered tests can take a few minutes for the dense mechanical model.
 
 The optional Blender preparation was also executed successfully with Blender 4.3.2. Its output lives outside the checkout.
 
 ## Main files
 
-- `src/main.js`: loader, original-node mapping, component transforms, GSAP scroll/slider control, camera, lighting, picking, and labels.
+- `src/main.js`: two-source loader, component grouping, GSAP progress, gear pivots, camera, lighting, picking, and labels.
+- `src/choreography.js`: reversible model rotation and camera poses across the scroll sequence.
 - `src/materials.js`: selective brown recoloring and physical material variants.
-- `src/model-config.json`: inspected component mapping, source path, and normalization.
+- `src/model-config.json`: inspected component mapping, both source paths, mesh selection, gear pivots, and normalization.
 - `src/style.css`: responsive editorial layout and local font definitions.
 - `vite.config.js`: production bundle splitting; Vite serves the uploaded GLB from public/.
 - `tools/inspect_model.py`: dependency-free GLB inspection.
