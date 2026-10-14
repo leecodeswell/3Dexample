@@ -62,6 +62,7 @@ function sapphireShader(material) {
 
 export function finishProfileName(name, part) {
   if (name === 'Glass') return 'sapphire';
+  if (name === 'Bezel_enamel') return 'enamel';
   if (name === 'Dial_chestnut') return 'dial';
   if (name === 'Design_ivory') return 'ivory';
   if (name === 'Design_seconds') return 'seconds';

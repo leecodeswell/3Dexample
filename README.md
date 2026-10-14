@@ -28,7 +28,7 @@ Reduced-motion preferences disable automatic camera motion. The slider supports 
 
 ## Model and photographic treatment
 
-The single active GLB contains **110 meshes in 31 groups**, with 16 independently animated gear meshes. The solid brown face has 60 applied indices, Roman numerals, sword hands and a physical open-heart aperture. Mechanical parts stay below the dial and hands stay above it throughout the reveal. The closed sapphire crystal has a shallow polished dome and clears every hand.
+The single active GLB contains **110 meshes in 31 groups**, with 16 independently animated gear meshes. The solid brown face has 60 applied indices, Roman numerals, sword hands and a physical open-heart aperture. The outer bezel is clean dark enamel without city lettering. Mechanical parts stay below the dial and hands stay above it throughout the reveal. The closed sapphire crystal has a shallow polished dome and clears every hand. As it separates it tilts and moves aside, with restrained reflections that keep the dial visible.
 
 Shared [finish profiles](src/finish-profiles.json) distinguish polished case steel, brushed bracelet steel, machined gold, polished applied markers, ceramic accents, ivory inlays and sapphire. Eight local normal/roughness maps include a radial sunburst dial. A generated HDR studio uses feathered softboxes; rectangular area illumination, soft shadows and GTAO contact shading make the bridges and gears read with depth. Refraction uses full-opacity transmission with restrained coating reflections, rather than fading away the crystal. Bloom and film grain are restrained to keep the dial legible.
 
@@ -61,5 +61,7 @@ blender -b --factory-startup --python-exit-code 1 --python tools/render_hero.py
 For a cleaner product render, pass `-- --denoiser /path/to/oidnDenoise` to `render_hero.py`, using Intel's official [Open Image Denoise](https://www.openimagedenoise.org/). It is optional and not shipped with the app. The helper preserves the alpha silhouette and uses linear HDR beauty, albedo and normal guides. It writes a 1920-pixel PNG; convert that output to WebP for the loading poster. `--samples`, `--width` and `--output` configure the render.
 
 `tools/refine_crystal.py` can reproduce the shallow sapphire geometry from the active model into a separate GLB. It verifies the other 109 meshes retain their world bounds and writes updated depth measurements beside its output. It refuses to overwrite either its input or an existing output. The old source-dependent refinement pipeline was removed.
+
+`tools/refine_bezel.py` documents the removal of the original city-letter texture from the front bezel, preserving the entire binary chunk and adding a centered crystal pivot. That refinement is already included in the active asset. All groups now begin separating within the first 13% of the sequence, without shortening the scroll track or nine-second playback.
 
 Exterior by **DevPoly3D**, mechanism by **abdelghani.0**; both [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Local font licenses remain in `public/fonts/`. Gear motion is an illustrative hybrid rather than validated engineering ratios.

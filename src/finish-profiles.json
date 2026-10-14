@@ -55,6 +55,15 @@
     "surface": "polished",
     "normalStrength": 0.005
   },
+  "enamel": {
+    "color": "#101214",
+    "metalness": 0.18,
+    "roughness": 0.21,
+    "clearcoat": 0.7,
+    "clearcoatRoughness": 0.08,
+    "surface": "polished",
+    "normalStrength": 0.005
+  },
   "ivory": {
     "color": "#eee1c5",
     "metalness": 0,
@@ -85,6 +94,7 @@
     "transmission": 1,
     "thickness": 0.008,
     "ior": 1.76,
+    "envMapIntensity": 0.2,
     "opacity": 1,
     "clearcoat": 0,
     "clearcoatRoughness": 0.03,

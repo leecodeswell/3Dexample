@@ -25,6 +25,7 @@ def linear(hexcode):
  return tuple(v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in rgb)
 def profile_for(name,part):
  if name=='Glass':return 'sapphire'
+ if name=='Bezel_enamel':return 'enamel'
  if name=='Dial_chestnut':return 'dial'
  if name=='Design_ivory':return 'ivory'
  if name=='Design_seconds':return 'seconds'

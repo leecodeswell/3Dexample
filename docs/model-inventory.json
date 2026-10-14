@@ -1,9 +1,9 @@
 {
   "source": "watch-photoreal.glb",
-  "sha256": "0c90894b974ef0ec1a973defda7a06bcf0cb89cd6bdd5a726302a93376b1ea32",
-  "bytes": 27065880,
+  "sha256": "1f5720fd37eb54dc71653fdd00b2f982653685ef040f0ed1c298a7703d5fcc92",
+  "bytes": 27066508,
   "asset": {
-    "copyright": "Exterior by DevPoly3D; mechanism by abdelghani.0; CC BY 4.0. Modified hybrid, dial, hands and sapphire crystal.",
+    "copyright": "Exterior by DevPoly3D; mechanism by abdelghani.0; CC BY 4.0. Modified hybrid, dial, hands and sapphire crystal. City-letter bezel replaced with unlettered enamel.",
     "generator": "Khronos glTF Blender I/O v4.3.47",
     "version": "2.0"
   },
@@ -417,6 +417,40 @@
           1
         ],
         "roughnessFactor": 0.14059583842754364
+      }
+    },
+    {
+      "name": "Bezel_enamel",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.005181516702338386,
+          0.006048833022857054,
+          0.006995410187265387,
+          1
+        ],
+        "metallicFactor": 0.18,
+        "roughnessFactor": 0.21
+      },
+      "extensions": {
+        "KHR_materials_clearcoat": {
+          "clearcoatFactor": 0.7,
+          "clearcoatRoughnessFactor": 0.08
+        }
+      }
+    },
+    {
+      "name": "Metal_bezel_rim",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.552,
+          0.578,
+          0.597,
+          1
+        ],
+        "metallicFactor": 1,
+        "roughnessFactor": 0.19
       }
     }
   ],
@@ -1413,7 +1447,7 @@
       "primitives": [
         {
           "primitive_index": 0,
-          "material": "Image",
+          "material": "Metal_bezel_rim",
           "vertex_count": 192,
           "triangle_count": 256,
           "local_bounds": {
@@ -1617,7 +1651,7 @@
       "primitives": [
         {
           "primitive_index": 0,
-          "material": "Image",
+          "material": "Bezel_enamel",
           "vertex_count": 640,
           "triangle_count": 640,
           "local_bounds": {
@@ -1637,7 +1671,8 @@
       "extras": {
         "watch_component": "case",
         "watch_source": "exterior",
-        "photoreal_geometry": true
+        "photoreal_geometry": true,
+        "bezel_finish": "Unlettered polished dark enamel; source geometry retained."
       }
     },
     {
@@ -2456,7 +2491,12 @@
         "photoreal_geometry": true,
         "crystal_profile": "shallow_sapphire",
         "crystal_thickness": 0.016,
-        "crystal_sag": 0.022
+        "crystal_sag": 0.022,
+        "watch_pivot": [
+          0,
+          0,
+          0.148
+        ]
       }
     },
     {

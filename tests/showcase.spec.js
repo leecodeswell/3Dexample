@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { Euler, Vector3 } from 'three';
+import { samplePose } from '../src/choreography.js';
 
 async function load(page, path = '/') {
   const errors = [];
@@ -28,6 +30,8 @@ test('source transforms, reversible staging, scroll ownership, rotation, and set
   expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(110);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(true);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
+  const assembledPositions = await page.evaluate(() => __watchShowcase.positions);
+  expect(await page.evaluate(() => __watchShowcase.crystalRotation)).toEqual([0, 0, 0]);
   const depths = await page.evaluate(() => __watchShowcase.faceDepths);
   expect(depths.glass[0]).toBeGreaterThan(Math.max(...['hour', 'minute', 'second', 'hub'].map(k => depths[k][1])));
   for (const [key, bounds] of Object.entries(depths)) {
@@ -37,8 +41,13 @@ test('source transforms, reversible staging, scroll ownership, rotation, and set
 
   await setExplosion(page, 150);
   const early = await page.evaluate(() => __watchShowcase.positions);
-  expect(early.glass[2]).toBeGreaterThan(0);
-  expect(early.bracelet).toEqual([0, 0, 0]);
+  // Every component has started separating by 15%, including the mechanism
+  // and bracelet. The crystal drifts sideways and tilts instead of masking it.
+  for (const [part, origin] of Object.entries(assembledPositions)) {
+    expect(Math.hypot(...early[part].map((value, i) => value - origin[i])), part).toBeGreaterThan(.0001);
+  }
+  expect(early.glass[0]).toBeLessThan(assembledPositions.glass[0]);
+  expect(Math.abs((await page.evaluate(() => __watchShowcase.crystalRotation))[1])).toBeGreaterThan(.3);
   await setExplosion(page, 1000);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(false);
   await expect(page.locator('#explosion-value')).toHaveText('100%');
@@ -124,7 +133,15 @@ test('mobile viewport keeps manual controls usable and avoids horizontal overflo
   expect(errors).toEqual([]);
 });
 
-test('hybrid combines actual mechanisms and uses a reversible full-page turn', async ({ page }) => {
+test('hybrid keeps the mechanism facing the camera through the reversible reveal', async ({ page }) => {
+  // Inspect the complete camera path, not just the five authored keyframes.
+  // A positive, generous facing angle prevents rear/edge views hiding the gears.
+  for (const mobile of [false, true]) for (let step = 0; step <= 1000; step++) {
+    const pose = samplePose(step / 1000, mobile);
+    const normal = new Vector3(0, 0, 1).applyEuler(new Euler(...pose.rotation));
+    const sightline = new Vector3(...pose.eye).sub(new Vector3(...pose.target)).normalize();
+    expect(normal.dot(sightline)).toBeGreaterThan(.5);
+  }
   const errors = await load(page);
   expect(await page.evaluate(() => __watchShowcase.sourceCounts)).toEqual({ exterior: 21, mechanism: 74, design: 15 });
   expect(Object.keys(await page.evaluate(() => __watchShowcase.gearRotations))).toHaveLength(16);
@@ -136,21 +153,22 @@ test('hybrid combines actual mechanisms and uses a reversible full-page turn', a
   await page.keyboard.press('Escape');
   const assembledRotation = await page.evaluate(() => __watchShowcase.modelRotation);
   await setExplosion(page, 460);
-  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(1.25, 2);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation)).not.toEqual(assembledRotation);
   expect(Object.values(await page.evaluate(() => __watchShowcase.gearRotations)).some(v => Math.abs(v) > .01)).toBe(true);
   await setExplosion(page, 700);
-  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(3.25, 2);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation)).not.toEqual(assembledRotation);
   await setExplosion(page, 1000);
-  expect(await page.evaluate(() => __watchShowcase.modelRotation[1])).toBeCloseTo(5.7, 2);
+  expect(await page.evaluate(() => __watchShowcase.modelRotation)).not.toEqual(assembledRotation);
   await setExplosion(page, 0);
   expect(await page.evaluate(() => __watchShowcase.modelRotation)).toEqual(assembledRotation);
   expect(Object.values(await page.evaluate(() => __watchShowcase.gearRotations))).toEqual(Array(16).fill(0));
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
   // The newly added dial clears the movement before plates and wheels lift.
   // Check measured geometry through the sequence, not just the assembled pose.
-  for (const progress of [300, 450, 600, 750, 1000, 0]) {
+  for (const progress of [50, 150, 300, 450, 600, 750, 1000, 0]) {
     await setExplosion(page, progress);
     const layers = await page.evaluate(() => __watchShowcase.faceDepths);
+    expect(layers.glass[0]).toBeGreaterThan(Math.max(...['hour', 'minute', 'second', 'hub'].map(key => layers[key][1])));
     for (const [key, bounds] of Object.entries(layers)) {
       if (key.startsWith('gear') || ['movement', 'bridges', 'tourbillon'].includes(key)) expect(bounds[1]).toBeLessThan(layers.dial[0]);
       if (['hour', 'minute', 'second', 'hub'].includes(key)) expect(bounds[0]).toBeGreaterThan(layers.dial[1]);
@@ -164,7 +182,7 @@ test('full studio quality preserves a visible dial with contact shading and shad
   const errors = await load(page, '/?quality=studio');
   expect(await page.evaluate(() => __watchShowcase.rendering)).toEqual({ environment: '/studio.hdr', contactShading: true, shadows: true, opaqueMeshes: 109, glassMeshes: 1 });
   const profiles = await page.evaluate(() => __watchShowcase.finishProfiles);
-  for (const profile of ['sapphire', 'dial', 'steelBrushed', 'steelPolished', 'gold', 'goldPolished']) expect(profiles).toContain(profile);
+  for (const profile of ['sapphire', 'dial', 'enamel', 'steelBrushed', 'steelPolished', 'gold', 'goldPolished']) expect(profiles).toContain(profile);
   await setExplosion(page, 450);
   await setExplosion(page, 0);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);

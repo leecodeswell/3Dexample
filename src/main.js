@@ -2,6 +2,7 @@ import './style.css';
 import modelConfig from './model-config.json';
 import { createTreatments } from './materials.js';
 import { createContactShading } from './contact-shading.js';
+import { createStudioBackdrop } from './backdrop.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { samplePose } from './choreography.js';
@@ -91,24 +92,24 @@ function smoothStep(start, end, p) {
 }
 
 const definitions = {
-  case: { title: 'Corpus', subtitle: 'I / CORPUS', description: 'Argentum in forma. Corpus et lunula, in perfecta concordia.', offset: [0, 0, -.42], range: [.25, .72], anchor: [1.15, 0, 0] },
-  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Brunneum profundum. Numeri et indices una cum tabula moventur.', offset: [0, 0, 1.55], range: [.28, .60], anchor: [.95, 0, .1] },
-  glass: { title: 'Vitrum', subtitle: 'II / VITRUM', description: 'Lumen transit. Vitrum a corpore leniter separatur.', offset: [0, 0, 3.05], range: [.02, .51], anchor: [.95, 0, .1] },
-  hour: { title: 'Hora', subtitle: 'III / HORA', description: 'Parva sagitta, horae indicium. Motus in proprio axe.', offset: [-.12, .05, 1.8], range: [.23, .63], anchor: [-.45, 0, -.1] },
-  minute: { title: 'Minuta', subtitle: 'III / MINUTA', description: 'Longa sagitta, subtilis mensura. Pars singularis et libera.', offset: [.12, -.03, 2.2], range: [.18, .64], anchor: [0, 0, -.55] },
-  second: { title: 'Secunda', subtitle: 'III / SECUNDA', description: 'Momentum fugit. Tertia sagitta separatim revelatur.', offset: [0, .09, 2.6], range: [.12, .58], anchor: [.2, .2, .1] },
-  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 0, 1.72], range: [.22, .64], anchor: [0, 0, 0] },
-  crown: { title: 'Corona', subtitle: 'V / CORONA', description: 'Corona ad latus. Parva forma, magna diligentia.', offset: [.9, 0, .06], range: [.55, .94], anchor: [1.05, 0, 0] },
-  bars: { title: 'Ansae', subtitle: 'V / ANSAE', description: 'Ansae corpus et armillam coniungunt. Forma et materia in concordia.', offset: [.55, 0, -.15], range: [.56, .94], anchor: [1.05, 0, 0] },
-  bracelet: { title: 'Armilla', subtitle: 'VI / ARMILLA', description: 'Metallum circa carpi formam. Articuli in uno reticulo coniuncti.', offset: [0, 0, -.86], range: [.46, .95], anchor: [.6, -.7, -1.3] },
-  backplate: { title: 'Fundus', subtitle: 'VII / FUNDUS', description: 'Pars posterior. Metallum et textura sub lumine revelantur.', offset: [.12, 0, -1.25], range: [.58, .98], anchor: [.7, 0, -.3] },
-  clasp: { title: 'Fibula', subtitle: 'VI / FIBULA', description: 'Ultima pars, perfecta clausura. Fibula et parvus cardo simul moventur.', offset: [0, 0, -1.35], range: [.61, 1], anchor: [.3, 0, -2.1] },
+  case: { title: 'Corpus', subtitle: 'I / CORPUS', description: 'Argentum in forma. Corpus et lunula, in perfecta concordia.', offset: [0, 0, -.42], range: [.03, .72], anchor: [1.15, 0, 0] },
+  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Brunneum profundum. Numeri et indices una cum tabula moventur.', offset: [.55, .6, 1.55], range: [.025, .59], anchor: [.95, 0, .1] },
+  glass: { title: 'Vitrum', subtitle: 'II / VITRUM', description: 'Lumen transit. Vitrum a corpore leniter separatur.', offset: [-.9, .55, 3.6], range: [0, .40], anchor: [-.78, 0, 0] },
+  hour: { title: 'Hora', subtitle: 'III / HORA', description: 'Parva sagitta, horae indicium. Motus in proprio axe.', offset: [-.12, .05, 1.8], range: [.012, .57], anchor: [-.45, 0, -.1] },
+  minute: { title: 'Minuta', subtitle: 'III / MINUTA', description: 'Longa sagitta, subtilis mensura. Pars singularis et libera.', offset: [.12, -.03, 2.2], range: [.009, .58], anchor: [0, 0, -.55] },
+  second: { title: 'Secunda', subtitle: 'III / SECUNDA', description: 'Momentum fugit. Tertia sagitta separatim revelatur.', offset: [0, .09, 2.6], range: [.005, .58], anchor: [.2, .2, .1] },
+  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 0, 1.72], range: [.012, .57], anchor: [0, 0, 0] },
+  crown: { title: 'Corona', subtitle: 'V / CORONA', description: 'Corona ad latus. Parva forma, magna diligentia.', offset: [.9, 0, .06], range: [.10, .94], anchor: [1.05, 0, 0] },
+  bars: { title: 'Ansae', subtitle: 'V / ANSAE', description: 'Ansae corpus et armillam coniungunt. Forma et materia in concordia.', offset: [.55, 0, -.15], range: [.11, .94], anchor: [1.05, 0, 0] },
+  bracelet: { title: 'Armilla', subtitle: 'VI / ARMILLA', description: 'Metallum circa carpi formam. Articuli in uno reticulo coniuncti.', offset: [0, 0, -.86], range: [.07, .95], anchor: [.6, -.7, -1.3] },
+  backplate: { title: 'Fundus', subtitle: 'VII / FUNDUS', description: 'Pars posterior. Metallum et textura sub lumine revelantur.', offset: [.12, 0, -1.25], range: [.12, .98], anchor: [.7, 0, -.3] },
+  clasp: { title: 'Fibula', subtitle: 'VI / FIBULA', description: 'Ultima pars, perfecta clausura. Fibula et parvus cardo simul moventur.', offset: [0, 0, -1.35], range: [.13, 1], anchor: [.3, 0, -2.1] },
 };
 
 Object.assign(definitions, {
-  movement: { title: 'Machina', subtitle: 'IV / MACHINA', description: 'Intus, ars vivit. Rotae, axes et materia in concordia.', offset: [0, 0, .35], range: [.45, .78], anchor: [.45, -.15, .08] },
-  bridges: { title: 'Pontes', subtitle: 'V / PONTES', description: 'Pontes et cochleae. Forma subtilis motum custodit.', offset: [.18, .12, 1.38], range: [.50, .88], anchor: [.55, .3, .08] },
-  tourbillon: { title: 'Tourbillon', subtitle: 'VI / TOURBILLON', description: 'In parva machina, perpetuus motus. Aurum et aequilibrium.', offset: [0, .55, 1.1], range: [.57, .92], anchor: [.05, .1, 0] },
+  movement: { title: 'Machina', subtitle: 'IV / MACHINA', description: 'Intus, ars vivit. Rotae, axes et materia in concordia.', offset: [0, 0, .35], range: [.08, .78], anchor: [.45, -.15, .08] },
+  bridges: { title: 'Pontes', subtitle: 'V / PONTES', description: 'Pontes et cochleae. Forma subtilis motum custodit.', offset: [.18, .12, 1.38], range: [.09, .88], anchor: [.55, .3, .08] },
+  tourbillon: { title: 'Tourbillon', subtitle: 'VI / TOURBILLON', description: 'In parva machina, perpetuus motus. Aurum et aequilibrium.', offset: [0, .55, 1.1], range: [.10, .92], anchor: [.05, .1, 0] },
 });
 for (let i = 0; i < 16; i++) {
   const angle = i / 16 * Math.PI * 2;
@@ -116,7 +117,7 @@ for (let i = 0; i < 16; i++) {
     title: `Rota ${String(i + 1).padStart(2, '0')}`, subtitle: `VII / ROTA ${String(i + 1).padStart(2, '0')}`,
     description: 'Dentes, axis, aurum. Una pars in magno motu.',
     offset: [Math.cos(angle) * (.48 + i % 3 * .18), Math.sin(angle) * .5, .68 + i % 5 * .12],
-    range: [.58 + i % 4 * .015, .97], anchor: [.12, 0, 0], spin: (i % 2 ? -1 : 1) * (1.0 + i % 3 * .25),
+    range: [.10 + i % 4 * .01, .97], anchor: [.12, 0, 0], spin: (i % 2 ? -1 : 1) * (1.0 + i % 3 * .25),
   };
 }
 
@@ -125,13 +126,19 @@ function applyExplosion() {
   for (const part of parts.values()) {
     const t = smoothStep(...part.range, state.progress);
     part.group.position.copy(part.origin).addScaledVector(part.offset, t);
+    // Lift at the lens center, then turn it edge-on and drift it away from the
+    // dial. Refraction remains clear; the softbox never fills a frontal disc.
+    if (part.group.name === 'component_glass') {
+      const tilt = smoothStep(0, .32, state.progress);
+      part.group.rotation.set(tilt * .18, tilt === 0 ? 0 : -tilt * 1.08, 0);
+    }
   }
   for (const [key, part] of parts) {
     if (key.startsWith('gear')) {
-      const phase = smoothStep(.40, 1, state.progress);
+      const phase = smoothStep(.10, 1, state.progress);
       part.group.rotation.z = phase === 0 ? 0 : phase * part.spin * Math.PI * 2;
     }
-    if (key === 'tourbillon') part.group.rotation.z = smoothStep(.34, 1, state.progress) * Math.PI * 2;
+    if (key === 'tourbillon') part.group.rotation.z = smoothStep(.10, 1, state.progress) * Math.PI * 2;
   }
   displayProgress(state.progress);
   const pose = samplePose(state.progress, mobile());
@@ -234,6 +241,7 @@ async function loadWatch() {
     get meshCount() { return pickable.length; },
     get modelRotation() { return watchRoot.rotation.toArray().slice(0, 3); },
     get gearRotations() { return Object.fromEntries([...parts].filter(([k]) => k.startsWith('gear')).map(([k,p]) => [k,p.group.rotation.z])); },
+    get crystalRotation() { return parts.get('glass').group.rotation.toArray().slice(0, 3); },
     get sourceCounts() { return Object.fromEntries(['exterior', 'mechanism', 'design'].map(s => [s, pickable.filter(m => m.userData.source === s).length])); },
     get faceDepths() {
       scene.updateMatrixWorld(true); const inverse = watchRoot.matrixWorld.clone().invert();
@@ -309,12 +317,13 @@ function setupScene() {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .65;
-  renderer.setClearColor(0x141613, 0);
+  renderer.setClearColor(0x141613, 1);
   const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
   const softwareGPU = debug && /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL));
   studioQuality = new URLSearchParams(location.search).get('quality') === 'studio' || (!softwareGPU && !mobile());
   renderer.shadowMap.enabled = studioQuality; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene = new THREE.Scene();
+  scene.background = createStudioBackdrop(renderer.toneMappingExposure);
   camera = new THREE.PerspectiveCamera(38, 1, .05, 70);
   controls = new OrbitControls(camera, canvas);
   controls.addEventListener('change', () => { renderDirty = true; });
@@ -460,5 +469,6 @@ window.addEventListener('pagehide', () => {
   gsap.killTweensOf(state); stopPlayback(); cameraTween?.kill();
   scene?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => m.dispose()); } });
   treatments.dispose();
+  scene?.background?.dispose();
   scene?.environment?.dispose(); composer?.passes.forEach(pass => pass.dispose?.()); composer?.dispose(); renderer?.dispose();
 });
