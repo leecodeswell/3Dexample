@@ -13,7 +13,7 @@ CONFIG = json.loads((ROOT / 'src/model-config.json').read_text())
 
 
 def inspect(path, source=None):
-    source = source or next((s for s in CONFIG['sources'] if Path(s['asset']).name == path.name), {'memberships': {}})
+    source = source or {'memberships': {}}
     categories = {i: (role, 'Selected hybrid mesh grouped as ' + role) for role, nodes in source['memberships'].items() for i in nodes}
     blob = path.read_bytes()
     magic, version, length = struct.unpack_from('<4sII', blob)
@@ -75,7 +75,7 @@ def inspect(path, source=None):
         'nodes': inventory,
         'selected_mesh_count': sum(len(v) for v in source['memberships'].values()),
         'limitations': ['Hybrid is a designed combination of two models, not a certified physical mechanism.',
-                         'Uploads are preserved. Display derivative adds bevels, a dial and replacement hands; runtime poses are reversible.'],
+                         'Only the active refined model is retained. It includes a physical dial and replacement hands; runtime poses are reversible.'],
     }
 
 
@@ -84,7 +84,10 @@ def main():
     parser.add_argument('asset', nargs='?', type=Path)
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
-    report = inspect(args.asset) if args.asset else {'raw_preparation_mesh_count': CONFIG['selectedMeshCount'], 'display_mesh_count': CONFIG['derived']['meshCount'], 'component_count': len(CONFIG['derived']['components']), 'sources': [inspect(ROOT / 'public' / s['asset'].lstrip('/'), s) for s in CONFIG['sources']], 'derivative': inspect(ROOT / 'public' / CONFIG['derived']['asset'].lstrip('/')), 'face_depths': json.loads((ROOT / 'docs/face-depths.json').read_text())}
+    report = inspect(args.asset or ROOT / 'public' / CONFIG['model']['asset'].lstrip('/'))
+    report['face_depths'] = json.loads((ROOT / 'docs/face-depths.json').read_text())
+    if report['primitive_count'] != CONFIG['model']['meshCount']:
+        raise ValueError('Active model coverage changed')
     result = json.dumps(report, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

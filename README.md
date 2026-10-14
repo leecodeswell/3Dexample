@@ -1,42 +1,42 @@
 # AETERNUM — interactive watch showcase
 
-A full-screen, responsive Three.js product study combining a luxury exterior with an actual mechanical gear-and-tourbillon model. The oversized watch fills the page behind the editorial layout. Latin placeholder copy, ivory typography, dark olive studio lighting, photographic reflections, and restrained bloom.
+A full-viewport Three.js watch advertisement with a chestnut open-heart dial, a real mechanical interior, reversible scroll-driven separation and cinematic rotation. Latin placeholder copy, local fonts and floating inspection controls.
 
 ## Run
 
-Node.js 20.19+ or 22.12+ is required by Vite; this environment uses Node 24.
+Node.js 20.19+ or 22.12+ is required; this environment uses Node 24.
 
 ```sh
 npm ci
 npm run dev
-```
-
-```sh
 npm run build
 npm run preview
 ```
 
-The production site is generated in `dist/`. Deploy that directory to any static host. No API keys, backend, HDR downloads, external fonts, or runtime CDN dependencies are required. The refined model and both intact uploads are bundled in the production build. Font licenses are in `public/fonts/`; the bundled variable fonts are subset to Latin characters for a smaller download.
+Deploy `dist/` to a static host. Runtime needs no backend, credentials, external fonts, third-party HDR service or Blender installation. **Only `public/watch-photoreal.glb` remains**; the two obsolete source models were removed from the checkout and production build. Their attribution remains in the site and documentation.
 
 ## Explore
 
-- **Scroll:** three chapters turn the whole watch through front, side, rear and three-quarter views while separating glass, hands, dial, movement, bridges, 16 gear meshes, tourbillon, case and bracelet. Scrolling upward reverses both rotation and separation.
-- **Slider:** directly choose any separation amount independently of the page position. The next scroll gesture resumes scroll control.
-- **Play:** cinematic nine-second reveal; pause at any point. At full separation, play returns to the assembled watch.
-- **Drag:** orbit freely. Right-drag or Ctrl-wheel zooms; normal wheel scrolling advances the page. On touch devices, horizontal drags rotate, vertical gestures scroll, and two-finger gestures provide camera control where supported.
-- **Select a part:** click a mesh or visible technical label, then **CONTEMPLARE** to focus the camera on it.
-- **Reset icon:** restore the chapter's camera. The neighboring icon toggles slow rotation.
-- **STUDIUM:** toggle chestnut-brown recoloring, cinematic material finishes, studio glass, technical labels, and cinematic camera movement.
+- Scroll to separate the crystal, hands, dial, movement, bridges, gears, case and bracelet while the camera and model turn. Scroll upward to reassemble.
+- Use the slider for direct control, or Play for the nine-second reversible reveal.
+- Drag to orbit; right-drag or Ctrl-wheel to zoom. Normal wheel scrolling advances the page.
+- Select a part or technical label and choose **CONTEMPLARE** for a closer camera view.
+- Reset restores the chapter camera; the adjacent control toggles slow rotation.
+- **STUDIUM** controls brown recoloring, studio finishes, glass, labels and cinematic camera motion.
 
-User rotation is retained until the user resets the camera or resumes the explosion. Reduced-motion preferences disable automatic camera movement and text transitions. Keyboard controls have visible focus outlines; the explosion slider supports arrow keys, Home, and End. Escape closes panels.
+Reduced-motion preferences disable automatic camera motion. The slider supports keyboard navigation. Escape closes panels. Portrait and short landscape layouts retain their controls.
 
-## The actual model
+## Model and photographic treatment
 
-The refined display uses **21 exterior meshes**, **74 mechanical meshes** and **15 newly modeled face/hand meshes**: 110 meshes in 31 component groups, including 16 independently controlled gear meshes. A solid chestnut dial has a real open-heart aperture, applied hour markers, a minute track and Roman numerals. The movement is recessed beneath the dial; the three hands and their ivory inlays sit above all face decoration. Scrolling lifts the dial to reveal the full mechanism.
+The single active GLB contains **110 meshes in 31 groups**, with 16 independently animated gear meshes. The solid brown face has 60 applied indices, Roman numerals, sword hands and a physical open-heart aperture. Mechanical parts stay below the dial and hands stay above it throughout the reveal. The closed sapphire crystal has a shallow polished dome and clears every hand.
 
-Both uploads remain unchanged in `public/`. The separate `watch-photoreal.glb` derivative adds tiny bevels and refined normals. Six deterministic normal/roughness maps distinguish satin steel, machined gold and polished surfaces. The assembly and gear motion remain an illustrative hybrid rather than an engineering reconstruction.
+Shared [finish profiles](src/finish-profiles.json) distinguish polished case steel, brushed bracelet steel, machined gold, polished applied markers, ceramic accents, ivory inlays and sapphire. Eight local normal/roughness maps include a radial sunburst dial. A generated HDR studio uses feathered softboxes; rectangular area illumination, soft shadows and GTAO contact shading make the bridges and gears read with depth. Refraction uses full-opacity transmission with restrained coating reflections, rather than fading away the crystal. Bloom and film grain are restrained to keep the dial legible.
 
-See [inspection and attribution](docs/MODEL.md), [complete inventories](docs/model-inventory.json), [measured face depths](docs/face-depths.json), and [Blender refinement](tools/refine_geometry.py). Exterior by **DevPoly3D**, mechanism by **abdelghani.0**; both [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Credits appear in settings.
+Desktop hardware receives the complete studio pass. Mobile and software GPUs use the same materials and HDR lighting with cheaper shading. For a full-quality diagnostic preview, use `/?quality=studio`. This also lets browser tests exercise contact shading and shadow rendering on software GPUs. The renderer stays idle when the scene does not change.
+
+The loading poster is a denoised Cycles render of the **actual active model**, not an imagined/generated watch. There is no external generation API dependency.
+
+See [model inspection and attribution](docs/MODEL.md), [the active inventory](docs/model-inventory.json), and [measured face depths](docs/face-depths.json).
 
 ## Validation
 
@@ -45,30 +45,21 @@ python3 tools/inspect_model.py
 npm test
 ```
 
-Browser tests use the system Chromium when available. Otherwise run `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to your Chromium executable. They verify the actual gear/dial/hand depth order, derivative transforms, meaningful staged separation, exact reassembly, scroll takeover after manual input, orbit interaction, settings, and mobile controls. The initial shaders compile once; software-rendered tests can take a few minutes for the dense mechanical model.
+Tests cover visible rendered pixels, a single model request, crystal/hand clearance, gear/dial/hand ordering during reveal and reversal, exact reassembly, scroll ownership, orbit, settings, focus, portrait/landscape controls, and the full-quality contact/shadow pipeline. Tests use system Chromium; set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if needed. Software rendering can take a few minutes.
 
-The optional Blender preparation was also executed successfully with Blender 4.3.2. Its output lives outside the checkout.
+## Optional authoring
 
-## Main files
-
-- `src/main.js`: refined GLB loader, component grouping, GSAP progress, gear pivots, camera, lighting, picking, and labels.
-- `src/choreography.js`: reversible model rotation and camera poses across the scroll sequence.
-- `src/materials.js`: selective brown recoloring and physical material variants.
-- `src/model-config.json`: inspected component mapping, both source paths, mesh selection, gear pivots, and normalization.
-- `src/style.css`: responsive editorial layout and local font definitions.
-- `vite.config.js`: production bundle splitting; Vite serves the uploaded GLB from public/.
-- `tools/inspect_model.py`: dependency-free GLB inspection.
-- `tests/showcase.spec.js`: browser integration checks.
-
-## Optional asset authoring
-
-Runtime needs no Blender or Python packages. Authoring uses Blender 4.3+, NumPy and Pillow:
+The asset is already committed; these steps are not startup dependencies. Blender 4.3+ imports the active GLB directly. Python surface/environment generation uses NumPy and Pillow.
 
 ```sh
 python3 tools/generate_surface_maps.py
-blender -b --factory-startup --python-exit-code 1 --python tools/prepare_blender.py -- --output /workspace/scratch/hybrid-watch-preserved.blend
-blender -b /workspace/scratch/hybrid-watch-preserved.blend --python-exit-code 1 --python tools/refine_geometry.py
-blender -b /workspace/scratch/watch-photoreal.blend --python-exit-code 1 --python tools/render_hero.py
+python3 tools/generate_studio.py
+blender -b --factory-startup --python-exit-code 1 --python tools/prepare_blender.py -- --output /tmp/watch-studio.blend
+blender -b --factory-startup --python-exit-code 1 --python tools/render_hero.py
 ```
 
-Preparation refuses to overwrite an existing `.blend`. Refinement exports a separate derivative and measured depths; uploads are never overwritten. The render helper ray-traces the actual model. Its checked-in WebP serves as the loading poster. Higgsfield was unavailable in this environment; no Higgsfield API or generated content is used.
+For a cleaner product render, pass `-- --denoiser /path/to/oidnDenoise` to `render_hero.py`, using Intel's official [Open Image Denoise](https://www.openimagedenoise.org/). It is optional and not shipped with the app. The helper preserves the alpha silhouette and uses linear HDR beauty, albedo and normal guides. It writes a 1920-pixel PNG; convert that output to WebP for the loading poster. `--samples`, `--width` and `--output` configure the render.
+
+`tools/refine_crystal.py` can reproduce the shallow sapphire geometry from the active model into a separate GLB. It verifies the other 109 meshes retain their world bounds and writes updated depth measurements beside its output. It refuses to overwrite either its input or an existing output. The old source-dependent refinement pipeline was removed.
+
+Exterior by **DevPoly3D**, mechanism by **abdelghani.0**; both [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Local font licenses remain in `public/fonts/`. Gear motion is an illustrative hybrid rather than validated engineering ratios.

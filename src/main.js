@@ -1,6 +1,9 @@
 import './style.css';
 import modelConfig from './model-config.json';
 import { createTreatments } from './materials.js';
+import { createContactShading } from './contact-shading.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { samplePose } from './choreography.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -21,7 +24,7 @@ const slider = $('#explosion-slider'), output = $('#explosion-value');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mobile = () => innerWidth <= 700;
 const state = { progress: 0, ready: false, cinematic: !reducedMotion, labels: true, studio: true, brown: true, finish: true, interacting: false, focused: false, manualView: false };
-const parts = new Map(), pickable = [], originals = new Map(), labels = [];
+const parts = new Map(), pickable = [], labels = [];
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -32,7 +35,7 @@ const chapters = [
 ];
 let watchRoot;
 let renderDirty = true;
-let chapter = -1, renderer, composer, camera, controls, scene, bloom, explosionTween, cameraTween;
+let chapter = -1, renderer, composer, camera, controls, scene, bloom, contactShading, studioQuality, explosionTween, cameraTween;
 let animationFrame, scrollTrigger, lastInteraction = 0, clickStart, disposed = false;
 let scrollIntent = true;
 const cinematicTarget = new THREE.Vector3();
@@ -176,8 +179,13 @@ async function loadWatch() {
   watchRoot = new THREE.Group(); scene.add(watchRoot);
   watchRoot.rotation.set(...samplePose(0).rotation);
   const sourceWorld = new Map();
-  await treatments.ready;
-  const gltf = await loader.loadAsync(modelConfig.derived.asset, e => {
+  const [environment] = await Promise.all([new HDRLoader().loadAsync(modelConfig.environment), treatments.ready]);
+  environment.mapping = THREE.EquirectangularReflectionMapping;
+  const generator = new THREE.PMREMGenerator(renderer);
+  const reflectionMap = generator.fromEquirectangular(environment);
+  scene.environment = reflectionMap.texture; scene.environmentIntensity = .85;
+  environment.dispose(); generator.dispose();
+  const gltf = await loader.loadAsync(modelConfig.model.asset, e => {
     if (e.total) $('#load-percent').textContent = `${Math.round(e.loaded / e.total * 100)}%`;
   });
   watchRoot.add(gltf.scene); scene.updateMatrixWorld(true);
@@ -201,11 +209,11 @@ async function loadWatch() {
     group.add(mesh); mesh.matrixAutoUpdate = false; mesh.matrix.copy(local); mesh.matrixWorldNeedsUpdate = true;
     mesh.userData.part = key; mesh.userData.source = source; pickable.push(mesh);
     const array = Array.isArray(mesh.material), materials = array ? mesh.material : [mesh.material];
-    treatedMeshes.push({ mesh, array, variants: materials.map(m => treatments.variants(m, mesh.geometry.hasAttribute('uv'))) });
+    treatedMeshes.push({ mesh, array, variants: materials.map(m => treatments.variants(m, mesh.geometry.hasAttribute('uv'), key)) });
     mesh.castShadow = mesh.receiveShadow = !materials.some(m => m.name === 'Glass');
-    if (materials.some(m => m.name === 'Glass')) mesh.renderOrder = 2;
+    if (materials.some(m => m.name === 'Glass')) { mesh.renderOrder = 2; glass.push(mesh); }
   }
-  if (meshes.length !== modelConfig.derived.meshCount) throw new Error('Photoreal component coverage failed.');
+  if (meshes.length !== modelConfig.model.meshCount) throw new Error('Photoreal component coverage failed.');
   updateTreatments();
   // Seven restrained labels; all actual meshes remain available by clicking.
   for (const key of ['glass', 'dial', 'gear01', 'movement', 'bridges', 'case', 'bracelet']) {
@@ -236,6 +244,8 @@ async function loadWatch() {
       }));
     },
     get appearance() { return { brown: state.brown, finish: state.finish, studioGlass: state.studio }; },
+    get rendering() { return { environment: modelConfig.environment, contactShading: !!contactShading?.enabled, shadows: renderer.shadowMap.enabled, opaqueMeshes: pickable.length - glass.length, glassMeshes: glass.length }; },
+    get finishProfiles() { return [...new Set(treatedMeshes.flatMap(r => r.variants.map(v => v.profile)).filter(Boolean))]; },
     get cameraPosition() { return camera.position.toArray(); },
     get sourceTransformsMatch() { scene.updateMatrixWorld(true); return [...sourceWorld].every(([mesh, matrix]) => mesh.matrixWorld.elements.every((value, i) => Math.abs(value - matrix.elements[i]) < 1e-6)); },
     get assembled() { return [...parts.values()].every(p => p.group.position.distanceTo(p.origin) < 1e-8); },
@@ -298,11 +308,12 @@ function animate() {
 function setupScene() {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .70;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .65;
   renderer.setClearColor(0x141613, 0);
   const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
   const softwareGPU = debug && /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL));
-  renderer.shadowMap.enabled = !softwareGPU; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  studioQuality = new URLSearchParams(location.search).get('quality') === 'studio' || (!softwareGPU && !mobile());
+  renderer.shadowMap.enabled = studioQuality; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(38, 1, .05, 70);
   controls = new OrbitControls(camera, canvas);
@@ -319,33 +330,18 @@ function setupScene() {
     state.interacting = true; state.manualView = true; cameraTween?.kill(); lastInteraction = performance.now(); document.body.classList.add('dragging');
   });
   controls.addEventListener('end', () => { state.interacting = false; lastInteraction = performance.now(); document.body.classList.remove('dragging'); });
-  // High-contrast photographic softboxes: reflections stay detailed rather than
-  // washing the source silver into a uniform white. No source materials are recolored.
-  const envScene = new THREE.Scene(); envScene.background = new THREE.Color('#171b19');
-  const boxes = [
-    { pos: [-5, 3, 4], size: [3, 8], color: [5.2, 4.8, 4.1] },
-    { pos: [5, 1, 2], size: [2, 8], color: [2.5, 3.0, 3.5] },
-    { pos: [0, 7, -1], size: [5, 3], color: [3.5, 3.5, 3.2] },
-    { pos: [-1, -2, -6], size: [6, 1], color: [3.0, 2.4, 1.7] },
-  ];
-  const softboxes = boxes.map(b => {
-    const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-    material.color.setRGB(...b.color);
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(...b.size), material);
-    mesh.position.set(...b.pos); mesh.lookAt(0, 0, 0); envScene.add(mesh); return mesh;
-  });
-  const envGenerator = new THREE.PMREMGenerator(renderer);
-  const studioEnv = envGenerator.fromScene(envScene, .025);
-  scene.environment = studioEnv.texture; scene.environmentIntensity = .78;
-  envGenerator.dispose(); softboxes.forEach(m => { m.geometry.dispose(); m.material.dispose(); });
-  const key = new THREE.DirectionalLight(0xffedce, 1.1); key.position.set(-3, 6, 7);
-  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = .002; key.shadow.bias = -.0001;
+  RectAreaLightUniformsLib.init();
+  const softbox = new THREE.RectAreaLight(0xfff0d8, .9, 3, 5);
+  softbox.position.set(-4, 4, 3); softbox.lookAt(0, 0, 0); scene.add(softbox);
+  const key = new THREE.DirectionalLight(0xffedce, .85); key.position.set(-3, 6, 7);
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = .0008; key.shadow.bias = -.0001;
   Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: .1, far: 25 });
   scene.add(key);
-  const fill = new THREE.DirectionalLight(0xc7dded, .45); fill.position.set(5, -1, 3); scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xf2d1a0, 1.3); rim.position.set(-4, -3, -2); scene.add(rim);
-  scene.add(new THREE.AmbientLight(0xd3dcc5, .12));
+  const fill = new THREE.DirectionalLight(0xc7dded, .22); fill.position.set(5, -1, 3); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xf2d1a0, .90); rim.position.set(-4, -3, -2); scene.add(rim);
+  scene.add(new THREE.AmbientLight(0xd3dcc5, .04));
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
+  if (studioQuality) { contactShading = createContactShading(scene, camera, glass); composer.addPass(contactShading); }
   // Keep an invalid imported tangent or a half-float overflow from spreading
   // across the entire image through bloom's blur pyramid.
   composer.addPass(new ShaderPass({
@@ -357,7 +353,7 @@ function setupScene() {
         gl_FragColor=vec4(clamp(c.rgb,vec3(0.0),vec3(16.0)),c.a);
       }`,
   }));
-  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .035, .4, 1.8); composer.addPass(bloom);
+  bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .014, .4, 3.5); composer.addPass(bloom);
   composer.addPass(new ShaderPass({
     uniforms: { tDiffuse: { value: null } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
@@ -365,7 +361,7 @@ function setupScene() {
       void main(){ vec4 c=texture2D(tDiffuse,vUv); vec2 p=vUv-.5;
       float vignette=1.0-.20*dot(p,p);
       float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5;
-      c.rgb=c.rgb*vec3(1.025,1.0,.975)*vignette+grain*.002*c.a;
+      c.rgb=c.rgb*vec3(1.025,1.0,.975)*vignette+grain*.0007*c.a;
       gl_FragColor=vec4(max(c.rgb,vec3(0.0)),c.a); }`,
   }));
   composer.addPass(new OutputPass());
@@ -464,5 +460,5 @@ window.addEventListener('pagehide', () => {
   gsap.killTweensOf(state); stopPlayback(); cameraTween?.kill();
   scene?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => m.dispose()); } });
   treatments.dispose();
-  scene?.environment?.dispose(); composer?.dispose(); renderer?.dispose();
+  scene?.environment?.dispose(); composer?.passes.forEach(pass => pass.dispose?.()); composer?.dispose(); renderer?.dispose();
 });

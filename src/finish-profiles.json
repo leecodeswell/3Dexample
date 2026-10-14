@@ -1,0 +1,99 @@
+{
+  "steelBrushed": {
+    "color": "#b8bec3",
+    "metalness": 1,
+    "roughness": 0.32,
+    "clearcoat": 0.1,
+    "clearcoatRoughness": 0.22,
+    "surface": "satin",
+    "normalStrength": 0.022,
+    "atlasNormalization": 0.68
+  },
+  "steelPolished": {
+    "color": "#c4c8cb",
+    "metalness": 1,
+    "roughness": 0.19,
+    "clearcoat": 0.15,
+    "clearcoatRoughness": 0.12,
+    "surface": "polished",
+    "normalStrength": 0.006,
+    "atlasNormalization": 0.68
+  },
+  "gold": {
+    "color": "#c3a167",
+    "metalness": 1,
+    "roughness": 0.28,
+    "clearcoat": 0.1,
+    "clearcoatRoughness": 0.2,
+    "surface": "machined",
+    "normalStrength": 0.018
+  },
+  "goldPolished": {
+    "color": "#c3a167",
+    "metalness": 1,
+    "roughness": 0.21,
+    "clearcoat": 0.15,
+    "clearcoatRoughness": 0.12,
+    "surface": "polished",
+    "normalStrength": 0.006
+  },
+  "dial": {
+    "color": "#3f291d",
+    "metalness": 0.68,
+    "roughness": 0.39,
+    "clearcoat": 0.3,
+    "clearcoatRoughness": 0.18,
+    "surface": "sunburst",
+    "normalStrength": 0.028
+  },
+  "ceramic": {
+    "color": "#ffffff",
+    "metalness": 0.12,
+    "roughness": 0.24,
+    "clearcoat": 0.8,
+    "clearcoatRoughness": 0.12,
+    "surface": "polished",
+    "normalStrength": 0.005
+  },
+  "ivory": {
+    "color": "#eee1c5",
+    "metalness": 0,
+    "roughness": 0.3,
+    "clearcoat": 0.12,
+    "clearcoatRoughness": 0.2
+  },
+  "seconds": {
+    "color": "#8c3826",
+    "metalness": 0.85,
+    "roughness": 0.22,
+    "clearcoat": 0.12,
+    "clearcoatRoughness": 0.12,
+    "surface": "polished",
+    "normalStrength": 0.005
+  },
+  "ruby": {
+    "color": "#681d2d",
+    "metalness": 0,
+    "roughness": 0.14,
+    "clearcoat": 0.65,
+    "clearcoatRoughness": 0.06
+  },
+  "sapphire": {
+    "color": "#ffffff",
+    "metalness": 0,
+    "roughness": 0.008,
+    "transmission": 1,
+    "thickness": 0.008,
+    "ior": 1.76,
+    "opacity": 1,
+    "clearcoat": 0,
+    "clearcoatRoughness": 0.03,
+    "iridescence": 0.03,
+    "iridescenceIOR": 1.38,
+    "iridescenceThicknessRange": [
+      105,
+      135
+    ],
+    "specularIntensity": 0.065
+  }
+}

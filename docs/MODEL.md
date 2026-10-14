@@ -1,65 +1,42 @@
-# Hybrid mechanical watch
+# Refined mechanical watch
 
-The showcase combines two inspected GLBs: the brown-and-steel luxury exterior and bracelet with the newly supplied Arnold & Son mechanical interior. Both uploaded source files remain byte-for-byte intact. The old plain chronograph face is excluded from the visible hybrid assembly.
+`public/watch-photoreal.glb` is the single canonical model. The two legacy uploads were removed at the user's request. The active model includes their selected exterior and mechanical parts, the designed dial/hands, and a refined closed sapphire crystal. Historical source assets can be recovered from Git history if ever needed; runtime and authoring require only the active GLB.
 
-## Source inventory
+## Inspected geometry
 
-| Source | Original meshes | Prepared meshes | Preparation selection |
-| --- | --- | --- | --- |
-| `watch__luxury_wristwatch_3d_model.glb` | 56 | 27 | Case/bezel, glass, main hands, crown, lugs, bracelet, clasp, caseback |
-| `arnoldson_watch_mechanical.glb` | 83 | 74 | Movement frame, bridges, screws, bearings, 16 distinct gear meshes, tourbillon assembly |
+**110 mesh primitives**, **31 component groups**, **590,615 triangles**: 21 exterior meshes, 74 mechanical meshes and 15 designed face/hand meshes. Component metadata (`watch_component`, `watch_source`, `watch_pivot`) is embedded in the GLB. `src/model-config.json` declares the one asset, expected coverage and the local HDR environment.
 
-Source preparation selects **101 original meshes** in 30 groups. The display derivative replaces six legacy hand/hub meshes with 15 designed face/hand meshes: **110 meshes in 31 groups**, totaling **580,727 triangles**. Additions include a solid brown plate with an actual open-heart aperture, 60 applied indices, chapter and aperture rings, Roman numerals, sword hands with ivory inlays, a seconds needle and cap.
+The case, crown, bracelet, clasp, backplate, bridges, movement and 16 gear meshes retain their authored shape. Small bevels and weighted normals provide edge reflections. The movement sits beneath a solid chestnut dial with 60 indices, Roman numerals and a genuine six-o'clock open-heart opening. Three separate sword/needle hands sit above the face. Some wheel meshes contain compound geometry; 16 meshes do not imply 16 individual manufactured wheels.
 
-Full affine world transforms are baked before reparenting, preserving shear from the uploaded nonuniform hierarchy. Small bevels and weighted normals improve edge reflections. The movement is rotated 180 degrees in the dial plane to place the balance assembly at six o'clock, then recessed 0.075 normalized units. Case dimensions and source images are retained.
+The original coarse, steep dome was replaced with a closed, shallow sapphire crystal: 128 circumferential segments, 20 radial rings, 0.016 normalized units of thickness and 0.022 of dome sag. Its back surface begins at z=0.129, above the highest hand/cap surface at z=0.116. Its front reaches z=0.167. Refraction consequently requires no fake alpha fade. `tools/refine_crystal.py` verifies unchanged world bounds for the other 109 meshes before exporting.
 
-`face-depths.json` records evaluated vertex bounds along the face normal. Every gear and movement surface is below the dial's back surface; every hand is above the highest face decoration. Browser tests independently verify this order from the loaded geometry through six reveal/reversal positions, plus exact reassembly. The dial lifts before the movement and bridges, so mechanical parts do not pass through its solid face. Both source GLBs remain byte-identical. Regenerate the inventories, including the derivative:
+`docs/face-depths.json` records measured geometry depths. Browser tests independently verify crystal clearance and gear/dial/hand order at multiple reveal/reversal points. Full affine matrices and saved origins preserve exact reassembly. The dial lifts before the mechanism, preventing bridges or gears from passing through its face.
 
 ```sh
 python3 tools/inspect_model.py --output docs/model-inventory.json
 ```
 
-All 16 `Spur Gear` source meshes are separately selectable and animated. Some contain compound wheel geometry, so “16 gear meshes” does not imply 16 individually manufactured wheels. Gear pivots use their authored parent origins; the tourbillon pivot uses its authored assembly parent. Explosion positions always derive from saved origins, and rotation angles derive from progress, making reversal deterministic.
+The inventory contains the active hierarchy, primitives, materials, embedded images, source/component metadata and checksum. Original source-dependent mappings and broken asset paths have been removed.
 
-This is a designed hybrid visualization. Its combination and motion are not a certified reconstruction of a manufactured watch. Gear directions and rotation speeds illustrate the mechanism; tooth ratios and physical clearances are not engineering-validated. The mechanical source includes one authored animation clip; it is retained in the source file. The website uses its own reversible progress choreography instead of mixing a looping source clip with the exploded transforms.
+## Lighting and surfaces
 
-## Scroll choreography
+`src/finish-profiles.json` supplies common material parameters to Three.js and Blender. Case steel has a polished finish; bracelet and movement steel are brushed; gears use machined gold; indices and hands use polished champagne metal. The brown dial has radial satin grain. Neutral midtones in the old steel atlas are calibrated to metal reflectance rather than multiplying its baked gray shading into an unrealistically dark metal. Engraved blacks, light inscriptions and colored inserts remain protected. This treatment is reversible with the finish setting; embedded image pixels are unchanged. Sapphire uses IOR 1.76, full transmission and low coating reflectance, with the crystal treated as one closed volume rather than two alpha-blended surfaces. Refraction uses the actual optical roughness independently of Three.js's minimum specular roughness, preserving fine lettering beneath the lens. The key softbox sits outside the dial's mirror reflection; a dimmer reflection card lights its metal without washing out the glass.
 
-`src/choreography.js` defines five explicit poses:
+Eight deterministic normal/roughness maps come from `tools/generate_surface_maps.py`. `tools/generate_studio.py` creates a local linear RGBE panorama with feathered photographic softboxes, ceiling bounce and a dark floor. It is an analytic lighting rig, not a downloaded HDR photograph. HDR reflections, rectangular area lighting, soft shadows, GTAO contact shading, restrained bloom, warm grading and fine grain complete the image.
 
-1. **0%:** close assembled front view; slightly pitched and rolled.
-2. **22%:** front three-quarter rotation as the crystal and hands lift.
-3. **46%:** side cutaway while movement and bridges separate.
-4. **70%:** rear view revealing depth and the separated caseback.
-5. **100%:** return toward a front three-quarter view after almost a full revolution, with individually spread gear meshes and tourbillon visible.
+Glass is excluded from the contact shading depth/normal pass so its dome cannot hide the dial. AO runs at half resolution, with conservative radius and strength. Mobile/software GPUs retain the material and reflection treatment while skipping the expensive shadow/AO passes. `/?quality=studio` forces that path for diagnosis and verification. Pixel ratio is capped at 1.5; rendering rests when the view is static. A pre-bloom guard prevents invalid imported UV shading from propagating across the full frame.
 
-The page scroll, slider and play button all share the same progress state. Gear and tourbillon rotations follow progress and reverse exactly. Camera position, target, model yaw, pitch and roll use eased interpolation between the same pose milestones. Manual orbiting remains available; reset restores the current chapter camera.
+## Animation and authoring
 
-Reduced-motion preferences disable the automatic model/camera turn. Explicit slider and scroll actions still control part separation. The display setting can enable the cinematic turn when desired.
+The full-viewport canvas remains the page's backdrop. `src/choreography.js` supplies five eased front/side/rear/three-quarter poses. Scroll, slider and playback share a reversible progress state; manual orbit and part focus remain available. Reduced-motion preferences disable automatic camera turns. The nearly full model revolution also reverses deterministically.
 
-## Presentation and performance
+`tools/prepare_blender.py` imports the one active GLB and organizes 31 component collections into a new `.blend`. No legacy asset is needed. `tools/render_hero.py` imports the same GLB directly, applies shared surface profiles and HDR lighting, and ray-traces the actual assembly with Cycles. The crystal does not block shadow rays, matching Three.js's no-shadow crystal treatment and avoiding dark glass-caustic artifacts over the face; camera rays retain full physical refraction. Optional Open Image Denoise uses HDR beauty plus albedo/normal guides while retaining the original alpha silhouette. The denoised render becomes the checked-in WebP loading poster; Blender and the denoiser are not runtime dependencies.
 
-The Three.js canvas spans the complete viewport behind the typography and controls. The watch is deliberately oversized, with editorial gradients preserving text legibility. A responsive camera and floating frosted controls support portrait and short landscape layouts.
-
-Chestnut recoloring preserves embedded texture detail. Physical variants add satin steel, machined gold, polished hairlines, ruby-like bearings and sapphire-like glass. Six local normal/roughness maps come from `tools/generate_surface_maps.py`; source images are not edited. Source materials remain available through STUDIUM. HDR studio softboxes, champagne rim light, restrained bloom, warm grading, a fine static grain and a vignette complete the treatment.
-
-The renderer redraws when transforms, camera controls or materials change, and stays idle when the view is static. Pixel ratio is capped at 1.5. The dense mechanical model is intentionally retained without decimation; runtime loads one approximately 24 MB refined GLB. Both originals remain available for authoring.
-
-## Blender authoring helper
-
-```sh
-blender -b --factory-startup --python-exit-code 1 \
-  --python tools/prepare_blender.py -- \
-  --output /workspace/scratch/hybrid-watch-prepared.blend
-```
-
-The tested helper imports both sources, selects the same meshes as the website, preserves their world geometry while normalizing the assembly, and organizes 30 component collections. Verified output: 101 mesh objects and 491,161 polygons. It refuses to overwrite an existing output and does not re-export either GLB. Refine its output with `tools/refine_geometry.py`; `tools/render_hero.py` provides a Cycles product render. Interactive materials and scroll choreography run in Three.js.
-
-Compound gear meshes require manual separation to expose every manufactured wheel independently. Validated gear ratios, functional escapement simulation, certified crystal clearance and production CAD reconstruction require engineering references and manual work.
+The hybrid remains a designed visualization. Validated gear ratios, functional escapement simulation, manufacturing tolerances and CAD reconstruction require engineering references and manual work. Independently animating every wheel within a compound mesh requires manual separation.
 
 ## Attribution
 
-Both sources are licensed under **CC BY 4.0**, as recorded in their embedded metadata. Attribution appears in the website's STUDIUM panel.
+Both source designs are licensed under **CC BY 4.0**. The active GLB embeds their attribution and modification notice. Attribution appears in the website's STUDIUM panel.
 
 **Watch – Luxury Wristwatch 3D Model**, by **DevPoly3D**:
 
@@ -73,4 +50,4 @@ Both sources are licensed under **CC BY 4.0**, as recorded in their embedded met
 
 License: https://creativecommons.org/licenses/by/4.0/
 
-Presentation modifications: mesh selection and combination, uniform display normalization, reversible grouping and animation, replacement dial/hands, recessed and rotated movement, micro bevels and weighted normals, brown recoloring, studio material treatments and cinematic lighting/postprocessing. Source inscriptions and image maps are retained. AETERNUM remains Latin placeholder website branding.
+Presentation modifications: mesh selection and combination, uniform display normalization, reversible grouping and animation, replacement dial/hands and shallow closed sapphire crystal, recessed and rotated movement, micro bevels and weighted normals, brown recoloring, studio material treatments and cinematic lighting/postprocessing. Source inscriptions and embedded image maps remain in the combined model. AETERNUM remains Latin placeholder website branding.

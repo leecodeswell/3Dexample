@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
 
-async function load(page) {
+async function load(page, path = '/') {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto('/');
+  const models = [];
+  page.on('request', request => { const url = new URL(request.url()); if (url.pathname.endsWith('.glb')) models.push(url.pathname); });
+  await page.goto(path);
   await page.waitForFunction(() => window.__watchShowcase?.ready, null, { timeout: 90_000 });
   await expect(page.locator('#loading')).toBeHidden();
+  await expect(page.locator('#watch-poster')).toBeHidden();
+  expect(models).toEqual(['/watch-photoreal.glb']);
   // A ready scene must also produce visible pixels, including its postprocessing.
   expect((await page.locator('#watch-canvas').screenshot()).byteLength).toBeGreaterThan(50_000);
   return errors;
@@ -25,6 +29,7 @@ test('source transforms, reversible staging, scroll ownership, rotation, and set
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(true);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
   const depths = await page.evaluate(() => __watchShowcase.faceDepths);
+  expect(depths.glass[0]).toBeGreaterThan(Math.max(...['hour', 'minute', 'second', 'hub'].map(k => depths[k][1])));
   for (const [key, bounds] of Object.entries(depths)) {
     if (key.startsWith('gear') || ['movement', 'bridges', 'tourbillon'].includes(key)) expect(bounds[1]).toBeLessThan(depths.dial[0]);
     if (['hour', 'minute', 'second', 'hub'].includes(key)) expect(bounds[0]).toBeGreaterThan(depths.dial[1]);
@@ -151,5 +156,18 @@ test('hybrid combines actual mechanisms and uses a reversible full-page turn', a
       if (['hour', 'minute', 'second', 'hub'].includes(key)) expect(bounds[0]).toBeGreaterThan(layers.dial[1]);
     }
   }
+  expect(errors).toEqual([]);
+});
+
+test('full studio quality preserves a visible dial with contact shading and shadows', async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 640 });
+  const errors = await load(page, '/?quality=studio');
+  expect(await page.evaluate(() => __watchShowcase.rendering)).toEqual({ environment: '/studio.hdr', contactShading: true, shadows: true, opaqueMeshes: 109, glassMeshes: 1 });
+  const profiles = await page.evaluate(() => __watchShowcase.finishProfiles);
+  for (const profile of ['sapphire', 'dial', 'steelBrushed', 'steelPolished', 'gold', 'goldPolished']) expect(profiles).toContain(profile);
+  await setExplosion(page, 450);
+  await setExplosion(page, 0);
+  expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
+  expect((await page.locator('#watch-canvas').screenshot()).byteLength).toBeGreaterThan(50_000);
   expect(errors).toEqual([]);
 });
