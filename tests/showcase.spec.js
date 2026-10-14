@@ -3,9 +3,12 @@ import { test, expect } from '@playwright/test';
 async function load(page) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto('/');
   await page.waitForFunction(() => window.__watchShowcase?.ready, null, { timeout: 90_000 });
   await expect(page.locator('#loading')).toBeHidden();
+  // A ready scene must also produce visible pixels, including its postprocessing.
+  expect((await page.locator('#watch-canvas').screenshot()).byteLength).toBeGreaterThan(50_000);
   return errors;
 }
 
@@ -17,10 +20,15 @@ async function setExplosion(page, value) {
 
 test('source transforms, reversible staging, scroll ownership, rotation, and settings', async ({ page }) => {
   const errors = await load(page);
-  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(30);
-  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(101);
+  expect(await page.evaluate(() => __watchShowcase.parts)).toHaveLength(31);
+  expect(await page.evaluate(() => __watchShowcase.meshCount)).toBe(110);
   expect(await page.evaluate(() => __watchShowcase.assembled)).toBe(true);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
+  const depths = await page.evaluate(() => __watchShowcase.faceDepths);
+  for (const [key, bounds] of Object.entries(depths)) {
+    if (key.startsWith('gear') || ['movement', 'bridges', 'tourbillon'].includes(key)) expect(bounds[1]).toBeLessThan(depths.dial[0]);
+    if (['hour', 'minute', 'second', 'hub'].includes(key)) expect(bounds[0]).toBeGreaterThan(depths.dial[1]);
+  }
 
   await setExplosion(page, 150);
   const early = await page.evaluate(() => __watchShowcase.positions);
@@ -113,7 +121,7 @@ test('mobile viewport keeps manual controls usable and avoids horizontal overflo
 
 test('hybrid combines actual mechanisms and uses a reversible full-page turn', async ({ page }) => {
   const errors = await load(page);
-  expect(await page.evaluate(() => __watchShowcase.sourceCounts)).toEqual({ exterior: 27, mechanism: 74 });
+  expect(await page.evaluate(() => __watchShowcase.sourceCounts)).toEqual({ exterior: 21, mechanism: 74, design: 15 });
   expect(Object.keys(await page.evaluate(() => __watchShowcase.gearRotations))).toHaveLength(16);
   const stage = await page.locator('#stage').boundingBox();
   expect(stage.x).toBe(0); expect(stage.y).toBe(0);
@@ -133,5 +141,15 @@ test('hybrid combines actual mechanisms and uses a reversible full-page turn', a
   expect(await page.evaluate(() => __watchShowcase.modelRotation)).toEqual(assembledRotation);
   expect(Object.values(await page.evaluate(() => __watchShowcase.gearRotations))).toEqual(Array(16).fill(0));
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
+  // The newly added dial clears the movement before plates and wheels lift.
+  // Check measured geometry through the sequence, not just the assembled pose.
+  for (const progress of [300, 450, 600, 750, 1000, 0]) {
+    await setExplosion(page, progress);
+    const layers = await page.evaluate(() => __watchShowcase.faceDepths);
+    for (const [key, bounds] of Object.entries(layers)) {
+      if (key.startsWith('gear') || ['movement', 'bridges', 'tourbillon'].includes(key)) expect(bounds[1]).toBeLessThan(layers.dial[0]);
+      if (['hour', 'minute', 'second', 'hub'].includes(key)) expect(bounds[0]).toBeGreaterThan(layers.dial[1]);
+    }
+  }
   expect(errors).toEqual([]);
 });

@@ -4,24 +4,20 @@ The showcase combines two inspected GLBs: the brown-and-steel luxury exterior an
 
 ## Source inventory
 
-| Source | Original meshes | Selected meshes | Used for |
+| Source | Original meshes | Prepared meshes | Preparation selection |
 | --- | --- | --- | --- |
 | `watch__luxury_wristwatch_3d_model.glb` | 56 | 27 | Case/bezel, glass, main hands, crown, lugs, bracelet, clasp, caseback |
 | `arnoldson_watch_mechanical.glb` | 83 | 74 | Movement frame, bridges, screws, bearings, 16 distinct gear meshes, tourbillon assembly |
 
-The hybrid has **101 selected meshes**, **30 independently controlled component groups**, and **491,161 triangles**. Selection, centering, scales, and source gear pivots are defined in `src/model-config.json`. The full inventories, original material names, native parent hierarchy, checksums, bounds, and selection roles are in `model-inventory.json`; regenerate them with:
+Source preparation selects **101 original meshes** in 30 groups. The display derivative replaces six legacy hand/hub meshes with 15 designed face/hand meshes: **110 meshes in 31 groups**, totaling **580,727 triangles**. Additions include a solid brown plate with an actual open-heart aperture, 60 applied indices, chapter and aperture rings, Roman numerals, sword hands with ivory inlays, a seconds needle and cap.
+
+Full affine world transforms are baked before reparenting, preserving shear from the uploaded nonuniform hierarchy. Small bevels and weighted normals improve edge reflections. The movement is rotated 180 degrees in the dial plane to place the balance assembly at six o'clock, then recessed 0.075 normalized units. Case dimensions and source images are retained.
+
+`face-depths.json` records evaluated vertex bounds along the face normal. Every gear and movement surface is below the dial's back surface; every hand is above the highest face decoration. Browser tests independently verify this order from the loaded geometry through six reveal/reversal positions, plus exact reassembly. The dial lifts before the movement and bridges, so mechanical parts do not pass through its solid face. Both source GLBs remain byte-identical. Regenerate the inventories, including the derivative:
 
 ```sh
 python3 tools/inspect_model.py --output docs/model-inventory.json
 ```
-
-Both native files were imported and rendered in Blender. Their nested matrix and quaternion transforms were inspected before selection. Runtime grouping uses glTF source node indices and validates coverage and duplicate assignments. Full affine matrices are retained when regrouping; decomposing the nested nonuniform scales into position/rotation/scale would lose shear and alter assembled shapes. Omitted meshes are removed from the displayed source trees, preventing duplicate casings and opaque source cover plates from hiding the mechanism.
-
-## What was combined
-
-The exterior retains its case/bezel regions, brown bracelet inserts, crown, clasp, clear glass, hands and caseback. Its 29 dial/subdial mesh regions are omitted, so the original flat chronograph texture no longer covers the gear train.
-
-The mechanical source contributes its bridges and plates, small structural pieces, jewel-like bearings, named spur-gear meshes and tourbillon. Its duplicate outer case, crown, cover plates and redundant time display are omitted. The mechanism receives one uniform scale and translation to fit the exterior opening. No vertices, UVs, normals, teeth or source image pixels are rewritten.
 
 All 16 `Spur Gear` source meshes are separately selectable and animated. Some contain compound wheel geometry, so “16 gear meshes” does not imply 16 individually manufactured wheels. Gear pivots use their authored parent origins; the tourbillon pivot uses its authored assembly parent. Explosion positions always derive from saved origins, and rotation angles derive from progress, making reversal deterministic.
 
@@ -45,9 +41,9 @@ Reduced-motion preferences disable the automatic model/camera turn. Explicit sli
 
 The Three.js canvas spans the complete viewport behind the typography and controls. The watch is deliberately oversized, with editorial gradients preserving text legibility. A responsive camera and floating frosted controls support portrait and short landscape layouts.
 
-Chestnut recoloring preserves embedded texture detail. Physical studio variants add satin steel, warm gold, restrained clearcoat, ruby-like bearing accents and clear glass. Source materials remain available through STUDIUM. HDR studio softboxes, champagne rim light, restrained bloom, warm grading, a fine static grain and a vignette complete the treatment.
+Chestnut recoloring preserves embedded texture detail. Physical variants add satin steel, machined gold, polished hairlines, ruby-like bearings and sapphire-like glass. Six local normal/roughness maps come from `tools/generate_surface_maps.py`; source images are not edited. Source materials remain available through STUDIUM. HDR studio softboxes, champagne rim light, restrained bloom, warm grading, a fine static grain and a vignette complete the treatment.
 
-The renderer redraws when transforms, camera controls or materials change, and stays idle when the view is static. Pixel ratio is capped at 1.5. The dense mechanical model is intentionally retained without decimation; the two intact GLBs total approximately 28 MB before transport compression.
+The renderer redraws when transforms, camera controls or materials change, and stays idle when the view is static. Pixel ratio is capped at 1.5. The dense mechanical model is intentionally retained without decimation; runtime loads one approximately 24 MB refined GLB. Both originals remain available for authoring.
 
 ## Blender authoring helper
 
@@ -57,7 +53,9 @@ blender -b --factory-startup --python-exit-code 1 \
   --output /workspace/scratch/hybrid-watch-prepared.blend
 ```
 
-The tested helper imports both sources, selects the same meshes as the website, preserves their world geometry while normalizing the assembly, and organizes 30 component collections. Verified output: 101 mesh objects and 491,161 polygons. It refuses to overwrite an existing output and does not re-export either GLB. Runtime cinematic materials and scroll choreography are implemented by the website.
+The tested helper imports both sources, selects the same meshes as the website, preserves their world geometry while normalizing the assembly, and organizes 30 component collections. Verified output: 101 mesh objects and 491,161 polygons. It refuses to overwrite an existing output and does not re-export either GLB. Refine its output with `tools/refine_geometry.py`; `tools/render_hero.py` provides a Cycles product render. Interactive materials and scroll choreography run in Three.js.
+
+Compound gear meshes require manual separation to expose every manufactured wheel independently. Validated gear ratios, functional escapement simulation, certified crystal clearance and production CAD reconstruction require engineering references and manual work.
 
 ## Attribution
 
@@ -75,4 +73,4 @@ Both sources are licensed under **CC BY 4.0**, as recorded in their embedded met
 
 License: https://creativecommons.org/licenses/by/4.0/
 
-Presentation modifications: mesh selection and combination, uniform display normalization, reversible grouping and animation, brown recoloring, studio material treatments and cinematic lighting/postprocessing. Source inscriptions and image maps are retained. AETERNUM remains Latin placeholder website branding.
+Presentation modifications: mesh selection and combination, uniform display normalization, reversible grouping and animation, replacement dial/hands, recessed and rotated movement, micro bevels and weighted normals, brown recoloring, studio material treatments and cinematic lighting/postprocessing. Source inscriptions and image maps are retained. AETERNUM remains Latin placeholder website branding.

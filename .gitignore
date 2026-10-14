@@ -3,3 +3,5 @@ dist/
 .playwright/
 test-results/
 *.log
+
+__pycache__/

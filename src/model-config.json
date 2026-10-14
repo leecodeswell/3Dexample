@@ -207,5 +207,47 @@
         "gear16": 129
       }
     }
-  ]
+  ],
+  "derived": {
+    "asset": "/watch-photoreal.glb",
+    "meshCount": 110,
+    "sourceCounts": {
+      "design": 15,
+      "exterior": 21,
+      "mechanism": 74
+    },
+    "components": {
+      "dial": 9,
+      "hour": 2,
+      "minute": 2,
+      "second": 1,
+      "hub": 1,
+      "case": 6,
+      "backplate": 1,
+      "clasp": 7,
+      "bracelet": 3,
+      "bars": 2,
+      "crown": 1,
+      "glass": 1,
+      "tourbillon": 6,
+      "movement": 42,
+      "bridges": 10,
+      "gear01": 1,
+      "gear02": 1,
+      "gear03": 1,
+      "gear04": 1,
+      "gear05": 1,
+      "gear06": 1,
+      "gear07": 1,
+      "gear08": 1,
+      "gear09": 1,
+      "gear10": 1,
+      "gear11": 1,
+      "gear12": 1,
+      "gear13": 1,
+      "gear14": 1,
+      "gear15": 1,
+      "gear16": 1
+    }
+  }
 }

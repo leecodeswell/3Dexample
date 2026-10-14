@@ -52,13 +52,16 @@ def inspect(path, source=None):
                 'local_bounds': {'min': accessor.get('min'), 'max': accessor.get('max')},
             })
         role, notes = categories.get(index, ('excluded' if mesh else 'assembly', 'Unused source mesh' if mesh else 'Authored hierarchy/container transform'))
+        if node.get('extras', {}).get('watch_component'):
+            role = node['extras']['watch_component']; notes = 'Baked display derivative'
+            source['memberships'].setdefault(role, []).append(index)
         inventory.append({
             'node_index': index, 'name': node.get('name'), 'parent_node': parents.get(index),
             'children': node.get('children', []), 'mesh_index': node.get('mesh'),
             'translation': node.get('translation', [0, 0, 0]),
             'rotation_quaternion': node.get('rotation', [0, 0, 0, 1]),
             'scale': node.get('scale', [1, 1, 1]), 'matrix': node.get('matrix'),
-            'role': role, 'notes': notes, 'primitives': primitives,
+            'role': role, 'notes': notes, 'primitives': primitives, 'extras': node.get('extras', {}),
         })
     return {
         'source': path.name, 'sha256': hashlib.sha256(blob).hexdigest(), 'bytes': len(blob),
@@ -72,7 +75,7 @@ def inspect(path, source=None):
         'nodes': inventory,
         'selected_mesh_count': sum(len(v) for v in source['memberships'].values()),
         'limitations': ['Hybrid is a designed combination of two models, not a certified physical mechanism.',
-                         'Authored meshes, UVs, normals, and source images are preserved. Runtime poses and finishes are reversible.'],
+                         'Uploads are preserved. Display derivative adds bevels, a dial and replacement hands; runtime poses are reversible.'],
     }
 
 
@@ -81,7 +84,7 @@ def main():
     parser.add_argument('asset', nargs='?', type=Path)
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
-    report = inspect(args.asset) if args.asset else {'selected_mesh_count': CONFIG['selectedMeshCount'], 'component_count': sum(len(s['memberships']) for s in CONFIG['sources']), 'sources': [inspect(ROOT / 'public' / s['asset'].lstrip('/'), s) for s in CONFIG['sources']]}
+    report = inspect(args.asset) if args.asset else {'raw_preparation_mesh_count': CONFIG['selectedMeshCount'], 'display_mesh_count': CONFIG['derived']['meshCount'], 'component_count': len(CONFIG['derived']['components']), 'sources': [inspect(ROOT / 'public' / s['asset'].lstrip('/'), s) for s in CONFIG['sources']], 'derivative': inspect(ROOT / 'public' / CONFIG['derived']['asset'].lstrip('/')), 'face_depths': json.loads((ROOT / 'docs/face-depths.json').read_text())}
     result = json.dumps(report, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

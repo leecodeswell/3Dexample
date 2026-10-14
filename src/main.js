@@ -89,12 +89,12 @@ function smoothStep(start, end, p) {
 
 const definitions = {
   case: { title: 'Corpus', subtitle: 'I / CORPUS', description: 'Argentum in forma. Corpus et lunula, in perfecta concordia.', offset: [0, 0, -.42], range: [.25, .72], anchor: [1.15, 0, 0] },
-  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Brunneum profundum. Numeri et indices una cum tabula moventur.', offset: [0, 0, 1.0], range: [.36, .83], anchor: [.95, 0, .1] },
+  dial: { title: 'Tabula', subtitle: 'IV / TABULA', description: 'Brunneum profundum. Numeri et indices una cum tabula moventur.', offset: [0, 0, 1.55], range: [.28, .60], anchor: [.95, 0, .1] },
   glass: { title: 'Vitrum', subtitle: 'II / VITRUM', description: 'Lumen transit. Vitrum a corpore leniter separatur.', offset: [0, 0, 3.05], range: [.02, .51], anchor: [.95, 0, .1] },
   hour: { title: 'Hora', subtitle: 'III / HORA', description: 'Parva sagitta, horae indicium. Motus in proprio axe.', offset: [-.12, .05, 1.8], range: [.23, .63], anchor: [-.45, 0, -.1] },
   minute: { title: 'Minuta', subtitle: 'III / MINUTA', description: 'Longa sagitta, subtilis mensura. Pars singularis et libera.', offset: [.12, -.03, 2.2], range: [.18, .64], anchor: [0, 0, -.55] },
   second: { title: 'Secunda', subtitle: 'III / SECUNDA', description: 'Momentum fugit. Tertia sagitta separatim revelatur.', offset: [0, .09, 2.6], range: [.12, .58], anchor: [.2, .2, .1] },
-  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 0, 1.5], range: [.22, .66], anchor: [0, 0, 0] },
+  hub: { title: 'Axis', subtitle: 'III / AXIS', description: 'In centro, concordia. Axis sagittas in unum colligit.', offset: [0, 0, 1.72], range: [.22, .64], anchor: [0, 0, 0] },
   crown: { title: 'Corona', subtitle: 'V / CORONA', description: 'Corona ad latus. Parva forma, magna diligentia.', offset: [.9, 0, .06], range: [.55, .94], anchor: [1.05, 0, 0] },
   bars: { title: 'Ansae', subtitle: 'V / ANSAE', description: 'Ansae corpus et armillam coniungunt. Forma et materia in concordia.', offset: [.55, 0, -.15], range: [.56, .94], anchor: [1.05, 0, 0] },
   bracelet: { title: 'Armilla', subtitle: 'VI / ARMILLA', description: 'Metallum circa carpi formam. Articuli in uno reticulo coniuncti.', offset: [0, 0, -.86], range: [.46, .95], anchor: [.6, -.7, -1.3] },
@@ -103,9 +103,9 @@ const definitions = {
 };
 
 Object.assign(definitions, {
-  movement: { title: 'Machina', subtitle: 'IV / MACHINA', description: 'Intus, ars vivit. Rotae, axes et materia in concordia.', offset: [0, 0, .35], range: [.28, .64], anchor: [.45, -.15, .08] },
-  bridges: { title: 'Pontes', subtitle: 'V / PONTES', description: 'Pontes et cochleae. Forma subtilis motum custodit.', offset: [.18, .12, 1.38], range: [.36, .78], anchor: [.55, .3, .08] },
-  tourbillon: { title: 'Tourbillon', subtitle: 'VI / TOURBILLON', description: 'In parva machina, perpetuus motus. Aurum et aequilibrium.', offset: [0, .55, 1.1], range: [.42, .88], anchor: [.05, .1, 0] },
+  movement: { title: 'Machina', subtitle: 'IV / MACHINA', description: 'Intus, ars vivit. Rotae, axes et materia in concordia.', offset: [0, 0, .35], range: [.45, .78], anchor: [.45, -.15, .08] },
+  bridges: { title: 'Pontes', subtitle: 'V / PONTES', description: 'Pontes et cochleae. Forma subtilis motum custodit.', offset: [.18, .12, 1.38], range: [.50, .88], anchor: [.55, .3, .08] },
+  tourbillon: { title: 'Tourbillon', subtitle: 'VI / TOURBILLON', description: 'In parva machina, perpetuus motus. Aurum et aequilibrium.', offset: [0, .55, 1.1], range: [.57, .92], anchor: [.05, .1, 0] },
 });
 for (let i = 0; i < 16; i++) {
   const angle = i / 16 * Math.PI * 2;
@@ -113,7 +113,7 @@ for (let i = 0; i < 16; i++) {
     title: `Rota ${String(i + 1).padStart(2, '0')}`, subtitle: `VII / ROTA ${String(i + 1).padStart(2, '0')}`,
     description: 'Dentes, axis, aurum. Una pars in magno motu.',
     offset: [Math.cos(angle) * (.48 + i % 3 * .18), Math.sin(angle) * .5, .68 + i % 5 * .12],
-    range: [.45 + i % 4 * .025, .94], anchor: [.12, 0, 0], spin: (i % 2 ? -1 : 1) * (1.0 + i % 3 * .25),
+    range: [.58 + i % 4 * .015, .97], anchor: [.12, 0, 0], spin: (i % 2 ? -1 : 1) * (1.0 + i % 3 * .25),
   };
 }
 
@@ -163,7 +163,7 @@ function focusPart(key) {
   const part = parts.get(key); if (!part) return;
   const box = new THREE.Box3().setFromObject(part.group);
   const center = box.getCenter(new THREE.Vector3());
-  const radius = Math.max(box.getSize(new THREE.Vector3()).length() * .75, 1.1);
+  const radius = Math.max(box.getSize(new THREE.Vector3()).length() * .75, .35);
   const direction = camera.position.clone().sub(controls.target).normalize();
   const destination = center.clone().addScaledVector(direction, radius * 2.3);
   cameraTween?.kill(); state.focused = true;
@@ -176,59 +176,39 @@ async function loadWatch() {
   watchRoot = new THREE.Group(); scene.add(watchRoot);
   watchRoot.rotation.set(...samplePose(0).rotation);
   const sourceWorld = new Map();
-  const expectedCount = modelConfig.selectedMeshCount;
-  let complete = 0;
-  for (const source of modelConfig.sources) {
-    const gltf = await loader.loadAsync(source.asset, (e) => {
-      if (e.total) $('#load-percent').textContent = `${Math.round((complete + e.loaded / e.total) / modelConfig.sources.length * 100)}%`;
-    });
-    const nativeMeshes = []; gltf.scene.traverse(o => { if (o.isMesh) nativeMeshes.push(o); });
-    if (nativeMeshes.length !== source.sourceMeshCount) throw new Error(`Source mesh count changed: ${source.id}`);
-    gltf.scene.scale.setScalar(source.scale);
-    gltf.scene.position.fromArray(source.center).multiplyScalar(-source.scale);
-    watchRoot.add(gltf.scene); scene.updateMatrixWorld(true);
-    const nodes = await Promise.all(gltf.parser.json.nodes.map((_, i) => gltf.parser.getDependency('node', i)));
-    const selected = new Set(Object.values(source.memberships).flat().map(index => nodes[index]));
-    for (const mesh of nativeMeshes) {
-      if (!selected.has(mesh)) mesh.removeFromParent();
-      else sourceWorld.set(mesh, mesh.matrixWorld.clone());
-    }
-    const assigned = new Set();
-    for (const [key, indices] of Object.entries(source.memberships)) {
+  await treatments.ready;
+  const gltf = await loader.loadAsync(modelConfig.derived.asset, e => {
+    if (e.total) $('#load-percent').textContent = `${Math.round(e.loaded / e.total * 100)}%`;
+  });
+  watchRoot.add(gltf.scene); scene.updateMatrixWorld(true);
+  const meshes = []; gltf.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
+  for (const mesh of meshes) sourceWorld.set(mesh, mesh.matrixWorld.clone());
+  for (const mesh of meshes) {
+    // Blender may put object extras on a parent when a mesh has multiple materials.
+    let owner = mesh;
+    while (!owner.userData.watch_component && owner.parent) owner = owner.parent;
+    const key = owner.userData.watch_component, source = owner.userData.watch_source;
+    if (!definitions[key]) throw new Error(`Unmapped derivative component: ${mesh.name}`);
+    if (!parts.has(key)) {
       const group = new THREE.Group(); group.name = `component_${key}`; watchRoot.add(group);
-      if (source.pivots?.[key] !== undefined) {
-        const pivot = nodes[source.pivots[key]].getWorldPosition(new THREE.Vector3());
-        group.position.copy(watchRoot.worldToLocal(pivot)); group.updateMatrixWorld(true);
-      }
-      for (const index of indices) {
-        const node = nodes[index];
-        if (!node.isMesh || assigned.has(node)) throw new Error(`Invalid or duplicated source node ${source.id}:${index}`);
-        assigned.add(node);
-        // Preserve full affine transforms. TRS decomposition loses the shear created
-        // by rotated, nonuniform scales in the imported mechanical hierarchy.
-        group.updateWorldMatrix(true, false);
-        const local = group.matrixWorld.clone().invert().multiply(sourceWorld.get(node));
-        group.add(node); node.matrixAutoUpdate = false; node.matrix.copy(local);
-        node.matrixWorldNeedsUpdate = true;
-      }
+      if (owner.userData.watch_pivot) group.position.fromArray(owner.userData.watch_pivot);
       const def = definitions[key];
       parts.set(key, { ...def, group, origin: group.position.clone(), offset: new THREE.Vector3(...def.offset), range: def.range });
-      group.traverse(child => {
-        if (!child.isMesh) return;
-        child.userData.part = key; child.userData.source = source.id; pickable.push(child);
-        const array = Array.isArray(child.material);
-        const materials = array ? child.material : [child.material];
-        treatedMeshes.push({ mesh: child, array, variants: materials.map(treatments.variants) });
-        if (materials.some(m => m.name === 'Glass')) child.renderOrder = 2;
-      });
     }
-    if (assigned.size !== selected.size) throw new Error(`Incomplete component mapping: ${source.id}`);
-    complete++;
+    const group = parts.get(key).group;
+    group.updateWorldMatrix(true, false);
+    const local = group.matrixWorld.clone().invert().multiply(sourceWorld.get(mesh));
+    group.add(mesh); mesh.matrixAutoUpdate = false; mesh.matrix.copy(local); mesh.matrixWorldNeedsUpdate = true;
+    mesh.userData.part = key; mesh.userData.source = source; pickable.push(mesh);
+    const array = Array.isArray(mesh.material), materials = array ? mesh.material : [mesh.material];
+    treatedMeshes.push({ mesh, array, variants: materials.map(m => treatments.variants(m, mesh.geometry.hasAttribute('uv'))) });
+    mesh.castShadow = mesh.receiveShadow = !materials.some(m => m.name === 'Glass');
+    if (materials.some(m => m.name === 'Glass')) mesh.renderOrder = 2;
   }
-  if (sourceWorld.size !== expectedCount) throw new Error('Hybrid component coverage failed.');
+  if (meshes.length !== modelConfig.derived.meshCount) throw new Error('Photoreal component coverage failed.');
   updateTreatments();
   // Seven restrained labels; all actual meshes remain available by clicking.
-  for (const key of ['glass', 'tourbillon', 'gear01', 'movement', 'bridges', 'case', 'bracelet']) {
+  for (const key of ['glass', 'dial', 'gear01', 'movement', 'bridges', 'case', 'bracelet']) {
     const el = document.createElement('div'); el.className = 'part-label';
     const button = document.createElement('button'); button.textContent = parts.get(key).subtitle;
     button.setAttribute('aria-label', `Inspect ${key}`); button.tabIndex = -1;
@@ -238,14 +218,23 @@ async function loadWatch() {
   state.ready = true; slider.disabled = false;
   applyExplosion(); controls.target.copy(cinematicTarget); camera.position.copy(cinematicPosition); controls.update();
   $('#loading').hidden = true;
-  gsap.fromTo(canvas, { opacity: 0 }, { opacity: 1, duration: reducedMotion ? 0 : 1.7 });
+  canvas.style.opacity = '1';
+  gsap.to('#watch-poster', { opacity: 0, duration: reducedMotion ? 0 : .65, delay: .1, onComplete: () => { $('#watch-poster').hidden = true; } });
   window.__watchShowcase = {
     get progress() { return state.progress; },
     get parts() { return [...parts.keys()]; },
     get meshCount() { return pickable.length; },
     get modelRotation() { return watchRoot.rotation.toArray().slice(0, 3); },
     get gearRotations() { return Object.fromEntries([...parts].filter(([k]) => k.startsWith('gear')).map(([k,p]) => [k,p.group.rotation.z])); },
-    get sourceCounts() { return { exterior: pickable.filter(m => m.userData.source === 'exterior').length, mechanism: pickable.filter(m => m.userData.source === 'mechanism').length }; },
+    get sourceCounts() { return Object.fromEntries(['exterior', 'mechanism', 'design'].map(s => [s, pickable.filter(m => m.userData.source === s).length])); },
+    get faceDepths() {
+      scene.updateMatrixWorld(true); const inverse = watchRoot.matrixWorld.clone().invert();
+      return Object.fromEntries([...parts].map(([key,part]) => {
+        const box = new THREE.Box3(); part.group.traverse(m => { if (!m.isMesh) return;
+          m.geometry.computeBoundingBox(); box.union(m.geometry.boundingBox.clone().applyMatrix4(inverse.clone().multiply(m.matrixWorld)));
+        }); return [key, [box.min.z, box.max.z]];
+      }));
+    },
     get appearance() { return { brown: state.brown, finish: state.finish, studioGlass: state.studio }; },
     get cameraPosition() { return camera.position.toArray(); },
     get sourceTransformsMatch() { scene.updateMatrixWorld(true); return [...sourceWorld].every(([mesh, matrix]) => mesh.matrixWorld.elements.every((value, i) => Math.abs(value - matrix.elements[i]) < 1e-6)); },
@@ -311,13 +300,15 @@ function setupScene() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .70;
   renderer.setClearColor(0x141613, 0);
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
+  const softwareGPU = debug && /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL));
+  renderer.shadowMap.enabled = !softwareGPU; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(38, 1, .05, 70);
   controls = new OrbitControls(camera, canvas);
   controls.addEventListener('change', () => { renderDirty = true; });
   controls.enableDamping = true; controls.dampingFactor = .07; controls.enablePan = false;
-  controls.minDistance = 3; controls.maxDistance = 19; controls.autoRotateSpeed = .45;
+  controls.minDistance = .65; controls.maxDistance = 19; controls.autoRotateSpeed = .45;
   controls.enableZoom = true; controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
   canvas.style.touchAction = 'pan-y';
   // Preserve page wheel scrolling; pinch and right-drag retain camera zoom.
@@ -330,9 +321,9 @@ function setupScene() {
   controls.addEventListener('end', () => { state.interacting = false; lastInteraction = performance.now(); document.body.classList.remove('dragging'); });
   // High-contrast photographic softboxes: reflections stay detailed rather than
   // washing the source silver into a uniform white. No source materials are recolored.
-  const envScene = new THREE.Scene(); envScene.background = new THREE.Color('#454a43');
+  const envScene = new THREE.Scene(); envScene.background = new THREE.Color('#171b19');
   const boxes = [
-    { pos: [-5, 3, 4], size: [4, 9], color: [4.2, 3.8, 3.1] },
+    { pos: [-5, 3, 4], size: [3, 8], color: [5.2, 4.8, 4.1] },
     { pos: [5, 1, 2], size: [2, 8], color: [2.5, 3.0, 3.5] },
     { pos: [0, 7, -1], size: [5, 3], color: [3.5, 3.5, 3.2] },
     { pos: [-1, -2, -6], size: [6, 1], color: [3.0, 2.4, 1.7] },
@@ -347,11 +338,25 @@ function setupScene() {
   const studioEnv = envGenerator.fromScene(envScene, .025);
   scene.environment = studioEnv.texture; scene.environmentIntensity = .78;
   envGenerator.dispose(); softboxes.forEach(m => { m.geometry.dispose(); m.material.dispose(); });
-  const key = new THREE.DirectionalLight(0xffedce, 1.1); key.position.set(-3, 6, 7); scene.add(key);
+  const key = new THREE.DirectionalLight(0xffedce, 1.1); key.position.set(-3, 6, 7);
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = .002; key.shadow.bias = -.0001;
+  Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: .1, far: 25 });
+  scene.add(key);
   const fill = new THREE.DirectionalLight(0xc7dded, .45); fill.position.set(5, -1, 3); scene.add(fill);
   const rim = new THREE.DirectionalLight(0xf2d1a0, 1.3); rim.position.set(-4, -3, -2); scene.add(rim);
   scene.add(new THREE.AmbientLight(0xd3dcc5, .12));
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
+  // Keep an invalid imported tangent or a half-float overflow from spreading
+  // across the entire image through bloom's blur pyramid.
+  composer.addPass(new ShaderPass({
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+      void main(){ vec4 c=texture2D(tDiffuse,vUv);
+        if(any(isnan(c.rgb)) || any(isinf(c.rgb))) c.rgb=vec3(0.0);
+        gl_FragColor=vec4(clamp(c.rgb,vec3(0.0),vec3(16.0)),c.a);
+      }`,
+  }));
   bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .035, .4, 1.8); composer.addPass(bloom);
   composer.addPass(new ShaderPass({
     uniforms: { tDiffuse: { value: null } },

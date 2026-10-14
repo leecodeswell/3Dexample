@@ -18,7 +18,8 @@
     </header>
     <main>
       <div id="showroom" class="showroom">
-        <div class="stage" id="stage" aria-label="Interactive 3D watch. Drag to rotate. Use the slider to separate components."><canvas id="watch-canvas"></canvas></div>
+        <div class="stage" id="stage" aria-label="Interactive 3D watch. Drag to rotate. Use the slider to separate components."><img id="watch-poster" src="/watch-hero.webp" alt="" aria-hidden="true" fetchpriority="high" />
+          <canvas id="watch-canvas"></canvas></div>
         <div class="stage-vignette"></div>
         <div class="orbital-mark orbital-mark-one"></div><div class="orbital-mark orbital-mark-two"></div>
         <div class="edition"><span class="edition-line"></span> EXEMPLAR N° 001 <span class="edition-dot"></span> MMXXVI</div>
@@ -64,7 +65,7 @@
       <label class="setting-row">Materia cinematica<input id="cinematic-finish" type="checkbox" checked aria-label="Use cinematic material finish" /></label>
       <label class="setting-row">Notae technicae<input id="show-labels" type="checkbox" checked aria-label="Show component labels" /></label>
       <label class="setting-row">Motus camerae<input id="camera-motion" type="checkbox" checked aria-label="Enable cinematic camera motion" /></label>
-      <div class="panel-foot">GEOMETRIA ORIGINALIS<br>101 MESHES · 16 ROTAE<br><a href="https://sketchfab.com/DevPoly3D" target="_blank" rel="noreferrer">MODEL: DEVPOLY3D</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a><br><a href="https://sketchfab.com/abdelghani.0" target="_blank" rel="noreferrer">MECHANISM: ABDELGHANI.0</a> · CC BY 4.0</div>
+      <div class="panel-foot">FORMA REFINITA<br>110 MESHES · 16 ROTAE<br><a href="https://sketchfab.com/DevPoly3D" target="_blank" rel="noreferrer">MODEL: DEVPOLY3D</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a><br><a href="https://sketchfab.com/abdelghani.0" target="_blank" rel="noreferrer">MECHANISM: ABDELGHANI.0</a> · CC BY 4.0</div>
     </aside>
     <div class="inspector" id="inspector" hidden><button id="inspector-close" aria-label="Close component details">×</button><span class="inspector-kicker">PARS SELECTA</span><h2 id="inspector-title"></h2><p id="inspector-description"></p><button id="focus-part">CONTEMPLARE <span>↗</span></button></div>
     <div class="webgl-note" id="webgl-note" role="status" aria-live="polite"></div>
