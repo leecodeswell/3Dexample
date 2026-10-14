@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="la">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#141613" />
+  <meta name="description" content="Aeternum — ars horologica. An interactive study of time, form, and precision." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>AETERNUM — Ars Horologica</title>
+</head>
+<body>
+  <div id="app">
+    <div class="ambient"></div>
+    <header class="header">
+      <a class="brand" href="#initium" aria-label="Aeternum, initium"><span class="brand-symbol">◷</span> AETERNUM<span class="brand-caption">ARS HOROLOGICA</span></a>
+      <nav aria-label="Navigatio"><a href="#initium" class="nav-link active" data-section="0">OPUS</a><a href="#anatomia" class="nav-link" data-section="1">ANATOMIA</a><a href="#essentia" class="nav-link" data-section="2">ESSENTIA</a></nav>
+      <button class="sound-button" id="settings-toggle" aria-label="Open display settings" aria-expanded="false"><span class="settings-icon">☷</span><span>STUDIUM</span></button>
+    </header>
+    <main>
+      <div id="showroom" class="showroom">
+        <div class="stage" id="stage" aria-label="Interactive 3D watch. Drag to rotate. Use the slider to separate components."><canvas id="watch-canvas"></canvas></div>
+        <div class="stage-vignette"></div>
+        <div class="orbital-mark orbital-mark-one"></div><div class="orbital-mark orbital-mark-two"></div>
+        <div class="edition"><span class="edition-line"></span> EXEMPLAR N° 001 <span class="edition-dot"></span> MMXXVI</div>
+        <div class="editorial" id="editorial">
+          <div class="eyebrow"><span class="little-line"></span><span id="chapter-eyebrow">TEMPUS, IN FORMA</span></div>
+          <h1 id="chapter-title">Ars longa.<br><em>Tempus breve.</em></h1>
+          <p class="description" id="chapter-description">In singulis partibus, universum.<br>Forma, materia et motus in perfecta concordia.</p>
+          <button class="explore" id="explore-button"><span id="explore-text">EXPLORA OPUS</span><span class="circle-arrow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button>
+          <div class="chapter-meta"><span id="chapter-number">01</span><span class="meta-line"></span><span id="chapter-name">FORMA PERFECTA</span></div>
+        </div>
+        <div class="model-caption"><span class="caption-cross">+</span><div>AETERNUM / I<span>ARGENTUM · CAERULEUM</span></div><span class="caption-line"></span></div>
+        <div id="labels" class="labels" aria-hidden="true"></div>
+        <div class="model-tools">
+          <button id="reset-view" class="icon-button" title="Reset camera" aria-label="Reset camera"><svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1-1 7M5 3v5h5"/></svg></button>
+          <span class="tool-divider"></span>
+          <button id="auto-rotate" class="icon-button" title="Slow rotation" aria-label="Toggle slow rotation" aria-pressed="false"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="m18 6 3 4-5 1M12 4v16"/></svg></button>
+          <span class="rotate-hint">TRAHE AD ROTANDUM</span>
+        </div>
+        <div class="loading" id="loading"><span class="loading-ring"></span><span>FORMA EMERGIT<span id="load-percent">0%</span></span></div>
+        <div class="error-state" id="error-state" hidden><h2>Forma non apparuit.</h2><p>The 3D model could not load. Please reload or use a WebGL-enabled browser.</p><button id="reload-button">Reload</button></div>
+        <div class="bottom-area">
+          <div class="scroll-note"><span class="scroll-mouse"></span><div>DESCENDE ET REVELA<span>ARS IN SINGULIS</span></div></div>
+          <div class="explosion-control">
+            <div class="control-heading"><span><span class="control-dot"></span> ANATOMIA TEMPORIS</span><button id="play-explosion" aria-label="Play exploded view" title="Play / pause">&#9655;</button></div>
+            <div class="range-row"><span class="range-label">UNUM</span><input id="explosion-slider" type="range" min="0" max="1000" value="0" step="1" aria-label="Exploded view progress" disabled /><span class="range-label">PARTES</span><output id="explosion-value" for="explosion-slider">000%</output></div>
+            <div class="control-ticks"><span>01 / CORPUS</span><span>02 / VITRUM</span><span>03 / PARTES</span></div>
+          </div>
+          <div class="page-indicator"><span id="page-current">01</span><span class="page-slash">/</span><span>03</span><div class="page-bars"><i class="active"></i><i></i><i></i></div></div>
+        </div>
+        <div class="scroll-progress"><span id="scroll-progress-fill"></span></div>
+      </div>
+      <div class="scroll-track" aria-label="Watch exploration chapters">
+        <section id="initium" aria-label="Forma perfecta"></section>
+        <section id="anatomia" aria-label="Anatomia temporis"></section>
+        <section id="essentia" aria-label="Essentia revelata"></section>
+      </div>
+    </main>
+    <aside class="settings-panel" id="settings-panel" hidden>
+      <div class="panel-header"><span>STUDIUM</span><button id="settings-close" aria-label="Close settings">×</button></div>
+      <p>Lumen et materia.</p>
+      <label class="setting-row">Studio vitrum<input id="studio-glass" type="checkbox" checked aria-label="Use transparent studio glass" /></label>
+      <label class="setting-row">Notae technicae<input id="show-labels" type="checkbox" checked aria-label="Show component labels" /></label>
+      <label class="setting-row">Motus camerae<input id="camera-motion" type="checkbox" checked aria-label="Enable cinematic camera motion" /></label>
+      <div class="panel-foot">GEOMETRIA ORIGINALIS<br>21 MESHES · GLTF 2.0</div>
+    </aside>
+    <div class="inspector" id="inspector" hidden><button id="inspector-close" aria-label="Close component details">×</button><span class="inspector-kicker">PARS SELECTA</span><h2 id="inspector-title"></h2><p id="inspector-description"></p><button id="focus-part">CONTEMPLARE <span>↗</span></button></div>
+    <div class="webgl-note" id="webgl-note" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

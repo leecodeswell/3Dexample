@@ -1,0 +1,1175 @@
+{
+  "source": "mechanical watch.glb",
+  "sha256": "9dd9489860aa2eee7f691b3dd2bcf3a2256e98a2cf2e5f5870309fb99f1b1535",
+  "bytes": 5458100,
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.0.44",
+    "version": "2.0"
+  },
+  "scene_roots": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "node_count": 21,
+  "mesh_count": 21,
+  "primitive_count": 25,
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "body",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.4792430102825165,
+          0.4792430102825165,
+          0.4792430102825165,
+          1
+        ],
+        "roughnessFactor": 0.25806498527526855
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "digit place",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.002404421102255583,
+          0.07182657718658447,
+          0.5022521018981934,
+          1
+        ],
+        "roughnessFactor": 0.25806450843811035
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "base 2",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.4792430102825165,
+          0.4792430102825165,
+          0.4792430102825165,
+          1
+        ],
+        "roughnessFactor": 0.4032258093357086
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "name": "Window Glass",
+      "pbrMetallicRoughness": {}
+    },
+    {
+      "doubleSided": true,
+      "name": "digits",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.800000011920929,
+          0.800000011920929,
+          0.800000011920929,
+          1
+        ],
+        "roughnessFactor": 0.36935481429100037
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "gold",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          0.9606050252914429,
+          0,
+          1
+        ],
+        "roughnessFactor": 0.22177419066429138
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.00011961646853353436,
+        0.15000000596046448,
+        0
+      ],
+      "name": "arrows light",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.0004212500643916428,
+          0.18128260970115662,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.5
+      }
+    }
+  ],
+  "external_resources": [],
+  "animations": 0,
+  "skins": 0,
+  "nodes": [
+    {
+      "node_index": 0,
+      "name": "Cylinder",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 0,
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "case_and_dial",
+      "notes": "Two existing material primitives: body and dial surface; separable at runtime.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "body",
+          "vertex_count": 2183,
+          "triangle_count": 1470,
+          "local_bounds": {
+            "min": [
+              -1.006239891052246,
+              -0.19002598524093628,
+              -1.006239891052246
+            ],
+            "max": [
+              1.006239891052246,
+              0.19627343118190765,
+              1.006239891052246
+            ]
+          }
+        },
+        {
+          "primitive_index": 1,
+          "material": "digit place",
+          "vertex_count": 64,
+          "triangle_count": 62,
+          "local_bounds": {
+            "min": [
+              -0.8797047734260559,
+              -0.01651965081691742,
+              -0.8797047734260559
+            ],
+            "max": [
+              0.8797047734260559,
+              -0.01651965081691742,
+              0.8797047734260559
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 1,
+      "name": "Cylinder.003",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 1,
+      "translation": [
+        0,
+        -0.02275134064257145,
+        -0.9676368832588196
+      ],
+      "rotation_quaternion": [
+        -0.7071068286895752,
+        0,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "crown",
+      "notes": "Independent crown mesh.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "base 2",
+          "vertex_count": 1970,
+          "triangle_count": 1660,
+          "local_bounds": {
+            "min": [
+              -0.08529390394687653,
+              -0.028941243886947632,
+              -0.08529389649629593
+            ],
+            "max": [
+              0.08529390394687653,
+              0.18614479899406433,
+              0.08529389649629593
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 2,
+      "name": "Cube.004",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 2,
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "case_frame",
+      "notes": "Independent outer case / lug frame.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "base 2",
+          "vertex_count": 684,
+          "triangle_count": 656,
+          "local_bounds": {
+            "min": [
+              -1.313172459602356,
+              -0.16747352480888367,
+              -1.0282182693481445
+            ],
+            "max": [
+              1.313172459602356,
+              0.1042049378156662,
+              1.0282182693481445
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 3,
+      "name": "Cube.006",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 3,
+      "translation": [
+        0.8582679033279419,
+        -2.4767661094665527,
+        -0.0716375857591629
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        -0.7933531999588013,
+        0.6087616682052612
+      ],
+      "scale": [
+        0.6333207488059998,
+        0.6333207488059998,
+        0.9299723505973816
+      ],
+      "matrix": null,
+      "role": "bracelet",
+      "notes": "Joined bracelet mesh. Links are not independent scene nodes.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "body",
+          "vertex_count": 7488,
+          "triangle_count": 3876,
+          "local_bounds": {
+            "min": [
+              -3.8741133213043213,
+              -4.51279878616333,
+              -0.5578411221504211
+            ],
+            "max": [
+              1.6973228454589844,
+              1.2527433633804321,
+              0.7293121814727783
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 4,
+      "name": "Cylinder.006",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 4,
+      "translation": [
+        1.1175988912582397,
+        -0.06191614642739296,
+        0
+      ],
+      "rotation_quaternion": [
+        -0.7071068286895752,
+        0,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "spring_bars",
+      "notes": "Two spring bars joined into one mesh; move together.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "base 2",
+          "vertex_count": 2206,
+          "triangle_count": 2296,
+          "local_bounds": {
+            "min": [
+              -2.3031513690948486,
+              -0.697766125202179,
+              -0.06795375049114227
+            ],
+            "max": [
+              0.06795378029346466,
+              0.6977660655975342,
+              0.06795366108417511
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 5,
+      "name": "Cube.005",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 5,
+      "translation": [
+        0,
+        -3.2666430473327637,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1.0152556896209717,
+        0.9066885709762573
+      ],
+      "matrix": null,
+      "role": "clasp",
+      "notes": "Independent clasp plate.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "base 2",
+          "vertex_count": 142,
+          "triangle_count": 128,
+          "local_bounds": {
+            "min": [
+              -0.2689756751060486,
+              -0.03594444692134857,
+              -0.6762231588363647
+            ],
+            "max": [
+              0.2689756751060486,
+              0.11057010293006897,
+              0.6762231588363647
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 6,
+      "name": "Cube.008",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 6,
+      "translation": [
+        0,
+        -3.2376692295074463,
+        0.6820724010467529
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "clasp_detail",
+      "notes": "Independent clasp pin/detail; grouped with clasp.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "base 2",
+          "vertex_count": 24,
+          "triangle_count": 12,
+          "local_bounds": {
+            "min": [
+              -0.06603036820888519,
+              -0.022822583094239235,
+              -0.03653902933001518
+            ],
+            "max": [
+              0.06603036820888519,
+              0.022822583094239235,
+              0.03653902933001518
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 7,
+      "name": "glass",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 7,
+      "translation": [
+        0,
+        0.06560970097780228,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "glass",
+      "notes": "Independent glass shell; exported alphaMode BLEND with alpha 1.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "Window Glass",
+          "vertex_count": 1429,
+          "triangle_count": 1726,
+          "local_bounds": {
+            "min": [
+              -0.9254589080810547,
+              -0.11491458863019943,
+              -0.9254589080810547
+            ],
+            "max": [
+              0.9254589080810547,
+              0.15747249126434326,
+              0.9254589080810547
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 8,
+      "name": "Text",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 8,
+      "translation": [
+        -0.6528892517089844,
+        -0.015879269689321518,
+        0.08760911971330643
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.27280712127685547,
+        0.27280712127685547,
+        0.27280712127685547
+      ],
+      "matrix": null,
+      "role": "dial_numeral",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 3930,
+          "triangle_count": 6688,
+          "local_bounds": {
+            "min": [
+              0.02619248442351818,
+              -0.012199999764561653,
+              -0.6280872821807861
+            ],
+            "max": [
+              0.677250325679779,
+              0.012199999764561653,
+              0.002199999988079071
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 9,
+      "name": "Text.001",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 9,
+      "translation": [
+        0.07061661779880524,
+        -0.015879269689321518,
+        -0.721724271774292
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.27280712127685547,
+        0.27280712127685547,
+        0.27280712127685547
+      ],
+      "matrix": null,
+      "role": "dial_numeral",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 4450,
+          "triangle_count": 7604,
+          "local_bounds": {
+            "min": [
+              0.0270275566726923,
+              -0.012199999764561653,
+              -0.6264172792434692
+            ],
+            "max": [
+              0.4314284324645996,
+              0.012199999764561653,
+              0.010551197454333305
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 10,
+      "name": "Text.002",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 10,
+      "translation": [
+        0.8519048690795898,
+        -0.015879269689321518,
+        0.0588252916932106
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.27280712127685547,
+        0.27280712127685547,
+        0.27280712127685547
+      ],
+      "matrix": null,
+      "role": "dial_numeral",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 3412,
+          "triangle_count": 5808,
+          "local_bounds": {
+            "min": [
+              0.030567124485969543,
+              -0.012000000104308128,
+              -0.6281416416168213
+            ],
+            "max": [
+              0.4671365022659302,
+              0.012000000104308128,
+              0.01035175658762455
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 11,
+      "name": "Text.003",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 11,
+      "translation": [
+        0.07061661779880524,
+        -0.015879269689321518,
+        0.8627336025238037
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.27280712127685547,
+        0.27280712127685547,
+        0.27280712127685547
+      ],
+      "matrix": null,
+      "role": "dial_numeral",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 3580,
+          "triangle_count": 6096,
+          "local_bounds": {
+            "min": [
+              0.03036697953939438,
+              -0.012199999764561653,
+              -0.6280883550643921
+            ],
+            "max": [
+              0.4673364758491516,
+              0.012199999764561653,
+              0.010846888646483421
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 12,
+      "name": "Text.004",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 12,
+      "translation": [
+        -0.25666543841362,
+        -0.016424691304564476,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.10675660520792007,
+        0.10675660520792007,
+        0.10675660520792007
+      ],
+      "matrix": null,
+      "role": "dial_inscription",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "gold",
+          "vertex_count": 52803,
+          "triangle_count": 89944,
+          "local_bounds": {
+            "min": [
+              -2.915360927581787,
+              -0.012000000104308128,
+              -0.8254460096359253
+            ],
+            "max": [
+              2.915361166000366,
+              0.012000000104308128,
+              0.8254460096359253
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 13,
+      "name": "Text.005",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 13,
+      "translation": [
+        0.5656828284263611,
+        -0.016424691304564476,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        0.07628574967384338,
+        0.07628574967384338,
+        0.07628574967384338
+      ],
+      "matrix": null,
+      "role": "dial_inscription",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "gold",
+          "vertex_count": 42074,
+          "triangle_count": 71692,
+          "local_bounds": {
+            "min": [
+              -3.039210796356201,
+              -0.012000000104308128,
+              -0.824338436126709
+            ],
+            "max": [
+              3.0392115116119385,
+              0.012000000104308128,
+              0.824338436126709
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 14,
+      "name": "Plane",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 14,
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "dial_indices",
+      "notes": "Indices with luminous inlays; keep attached to dial.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 528,
+          "triangle_count": 320,
+          "local_bounds": {
+            "min": [
+              -0.7273648381233215,
+              -0.019416451454162598,
+              -0.7273648381233215
+            ],
+            "max": [
+              0.7273648381233215,
+              -0.011906027793884277,
+              0.7273648381233215
+            ]
+          }
+        },
+        {
+          "primitive_index": 1,
+          "material": "arrows light",
+          "vertex_count": 48,
+          "triangle_count": 32,
+          "local_bounds": {
+            "min": [
+              -0.7078449130058289,
+              -0.013710089027881622,
+              -0.7078449130058289
+            ],
+            "max": [
+              0.7078449130058289,
+              -0.013710089027881622,
+              0.7078449130058289
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 15,
+      "name": "Curve",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 15,
+      "translation": [
+        -0.5376622080802917,
+        -0.010937581770122051,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0.7071066498756409,
+        0,
+        0.70710688829422
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "dial_emblem",
+      "notes": "Keep attached to dial surface.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "gold",
+          "vertex_count": 1738,
+          "triangle_count": 1680,
+          "local_bounds": {
+            "min": [
+              -0.10492629557847977,
+              -0.009999999776482582,
+              -0.06844768673181534
+            ],
+            "max": [
+              0.10657543689012527,
+              0,
+              0.06175995245575905
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 16,
+      "name": "Cylinder.004",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 16,
+      "translation": [
+        0,
+        0.003397540654987097,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "matrix": null,
+      "role": "hand_hub",
+      "notes": "Independent central hub.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digit place",
+          "vertex_count": 2209,
+          "triangle_count": 2172,
+          "local_bounds": {
+            "min": [
+              -0.05503954738378525,
+              -0.05503954738378525,
+              -0.05503954738378525
+            ],
+            "max": [
+              0.05503954738378525,
+              0.05503954738378525,
+              0.05503954738378525
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 17,
+      "name": "Cone",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 17,
+      "translation": [
+        0,
+        0.05798251926898956,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        0.025404633954167366,
+        0.025404633954167366,
+        0.025404633954167366
+      ],
+      "matrix": null,
+      "role": "hand_cap",
+      "notes": "Independent central cap.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "body",
+          "vertex_count": 256,
+          "triangle_count": 126,
+          "local_bounds": {
+            "min": [
+              -1,
+              -0.013980329036712646,
+              -1
+            ],
+            "max": [
+              1,
+              0.8947417736053467,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 18,
+      "name": "Cube.002",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 18,
+      "translation": [
+        0,
+        0.03352261707186699,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        -0.42261824011802673,
+        0,
+        0.9063078165054321
+      ],
+      "scale": [
+        1,
+        0.6107412576675415,
+        0.5379955172538757
+      ],
+      "matrix": null,
+      "role": "second_hand",
+      "notes": "Thin diagonal hand; independent transform.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 34,
+          "triangle_count": 20,
+          "local_bounds": {
+            "min": [
+              -0.7941325306892395,
+              -0.004282437264919281,
+              -0.02037758007645607
+            ],
+            "max": [
+              -1.0226180165773258e-05,
+              0.006304015871137381,
+              0.02037758007645607
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 19,
+      "name": "Cube",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 19,
+      "translation": [
+        0,
+        -0.004283634480088949,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        0.4399906396865845,
+        1
+      ],
+      "matrix": null,
+      "role": "hour_hand",
+      "notes": "Short luminous hand; independent transform.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 124,
+          "triangle_count": 84,
+          "local_bounds": {
+            "min": [
+              -0.5106428265571594,
+              2.7208523079025326e-06,
+              -0.04582272842526436
+            ],
+            "max": [
+              -1.0258155271003488e-05,
+              0.02314823865890503,
+              0.04582272842526436
+            ]
+          }
+        },
+        {
+          "primitive_index": 1,
+          "material": "arrows light",
+          "vertex_count": 12,
+          "triangle_count": 12,
+          "local_bounds": {
+            "min": [
+              -0.4925514757633209,
+              0.015387816354632378,
+              -0.03810066729784012
+            ],
+            "max": [
+              -0.007732321508228779,
+              0.015387816354632378,
+              0.03810066729784012
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "node_index": 20,
+      "name": "Cube.001",
+      "parent_node": null,
+      "children": [],
+      "mesh_index": 20,
+      "translation": [
+        0,
+        0.011719532310962677,
+        0
+      ],
+      "rotation_quaternion": [
+        0,
+        -0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "scale": [
+        1,
+        0.4399906396865845,
+        1
+      ],
+      "matrix": null,
+      "role": "minute_hand",
+      "notes": "Long luminous hand; independent transform.",
+      "primitives": [
+        {
+          "primitive_index": 0,
+          "material": "digits",
+          "vertex_count": 124,
+          "triangle_count": 84,
+          "local_bounds": {
+            "min": [
+              -0.7788927555084229,
+              2.7208523079025326e-06,
+              -0.04582274705171585
+            ],
+            "max": [
+              -1.0258155271003488e-05,
+              0.02314823865890503,
+              0.04582272842526436
+            ]
+          }
+        },
+        {
+          "primitive_index": 1,
+          "material": "arrows light",
+          "vertex_count": 12,
+          "triangle_count": 12,
+          "local_bounds": {
+            "min": [
+              -0.760801374912262,
+              0.017471659928560257,
+              -0.03810068219900131
+            ],
+            "max": [
+              -0.007732321508228779,
+              0.017471659928560257,
+              0.03810066729784012
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "No mechanical movement, gears, escapement, or independently modeled caseback are present.",
+    "Bracelet links and paired spring bars are joined; runtime animation treats each mesh as one component.",
+    "Glass is geometrically independent but its original material exports alpha=1. Optional studio material is a runtime override."
+  ]
+}
