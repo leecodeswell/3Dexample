@@ -181,8 +181,9 @@ test('full studio quality preserves a visible dial with contact shading and shad
   await page.setViewportSize({ width: 800, height: 640 });
   const errors = await load(page, '/?quality=studio');
   expect(await page.evaluate(() => __watchShowcase.rendering)).toEqual({ environment: '/studio.hdr', contactShading: true, shadows: true, opaqueMeshes: 109, glassMeshes: 1 });
+  expect(await page.evaluate(() => __watchShowcase.gearGlareCount)).toBe(16);
   const profiles = await page.evaluate(() => __watchShowcase.finishProfiles);
-  for (const profile of ['sapphire', 'dial', 'enamel', 'steelBrushed', 'steelPolished', 'gold', 'goldPolished']) expect(profiles).toContain(profile);
+  for (const profile of ['sapphire', 'dial', 'enamel', 'steelBrushed', 'steelPolished', 'gold', 'goldPolished', 'gear']) expect(profiles).toContain(profile);
   await setExplosion(page, 450);
   await setExplosion(page, 0);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
