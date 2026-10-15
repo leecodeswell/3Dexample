@@ -1,5 +1,4 @@
 import './style.css';
-import { createGearGlare } from './gear-glare.js';
 import { createCinematicLighting } from './lighting.js';
 import modelConfig from './model-config.json';
 import { createTreatments } from './materials.js';
@@ -36,7 +35,7 @@ const chapters = [
   { eyebrow: 'ANATOMIA TEMPORIS', title: 'Intus.<br><em>Mirabilia.</em>', description: 'Aurum, rotae, motus.<br>Ars mechanica sub lumine revelatur.', name: 'ORDO ET MATERIA', action: 'REVELA PARTES' },
   { eyebrow: 'ESSENTIA REVELATA', title: 'Omnia.<br><em>In uno.</em>', description: 'Vitrum, argentum, lumen.<br>Perfectio ex singulis partibus nascitur.', name: 'ESSENTIA REVELATA', action: 'REDI AD INITIUM' },
 ];
-let watchRoot, cinematicLighting, gearGlare;
+let watchRoot, cinematicLighting;
 let expandedBounds;
 let renderDirty = true;
 let chapter = -1, renderer, composer, camera, controls, scene, bloom, contactShading, studioQuality, explosionTween, cameraTween;
@@ -239,7 +238,6 @@ async function loadWatch() {
     if (materials.some(m => m.name === 'Glass')) { mesh.renderOrder = 2; glass.push(mesh); }
   }
   if (meshes.length !== modelConfig.model.meshCount) throw new Error('Photoreal component coverage failed.');
-  gearGlare = createGearGlare(pickable);
   updateTreatments();
   // Seven restrained labels; all actual meshes remain available by clicking.
   for (const key of ['glass', 'dial', 'gear01', 'movement', 'bridges', 'case', 'bracelet']) {
@@ -275,7 +273,20 @@ async function loadWatch() {
     },
     get appearance() { return { brown: state.brown, finish: state.finish, studioGlass: state.studio }; },
     get rendering() { return { environment: modelConfig.environment, contactShading: !!contactShading?.enabled, shadows: renderer.shadowMap.enabled, opaqueMeshes: pickable.length - glass.length, glassMeshes: glass.length }; },
-    get gearGlareCount() { return gearGlare?.count || 0; },
+    get surfaceReflections() {
+      let sprites = 0; scene.traverse(object => { if (object.isSprite) sprites++; });
+      return {
+        sprites,
+        gears: pickable.filter(mesh => mesh.userData.part.startsWith('gear')).map(mesh => {
+          const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+          return { metalness: material.metalness, metalnessMap: !!material.metalnessMap, roughness: material.roughness };
+        }),
+        mechanismPlates: pickable.flatMap(mesh => Array.isArray(mesh.material) ? mesh.material : [mesh.material])
+          .filter(material => ['Material.004', 'Material.007'].includes(material.name))
+          .map(material => ({ metalness: material.metalness, metalnessMap: !!material.metalnessMap })),
+        crystalSpecular: glass[0]?.material.specularIntensity,
+      };
+    },
     get finishProfiles() { return [...new Set(treatedMeshes.flatMap(r => r.variants.map(v => v.profile)).filter(Boolean))]; },
     get cameraPosition() { return camera.position.toArray(); },
     get sourceTransformsMatch() { scene.updateMatrixWorld(true); return [...sourceWorld].every(([mesh, matrix]) => mesh.matrixWorld.elements.every((value, i) => Math.abs(value - matrix.elements[i]) < 1e-6)); },
@@ -340,7 +351,7 @@ function animate() {
     controls.update(Math.min(dt, .25)); scene.updateMatrixWorld(); updateLabels();
   }
   if (cinematicLighting?.update(state.progress, state.orbit, dt, state.finish, reducedMotion, bloom)) renderDirty = true;
-  if (renderDirty) { gearGlare?.update(camera, state.progress, state.orbit, state.finish, reducedMotion); composer.render(); renderDirty = false; }
+  if (renderDirty) { composer.render(); renderDirty = false; }
 }
 
 function setupScene() {
@@ -522,7 +533,6 @@ window.addEventListener('pagehide', () => {
   disposed = true; cancelAnimationFrame(animationFrame); scrollTrigger?.kill(); controls?.dispose();
   gsap.killTweensOf(state); stopPlayback(); cameraTween?.kill();
   scene?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => m.dispose()); } });
-  gearGlare?.dispose();
   treatments.dispose();
   scene?.background?.dispose();
   scene?.environment?.dispose(); composer?.passes.forEach(pass => pass.dispose?.()); composer?.dispose(); renderer?.dispose();

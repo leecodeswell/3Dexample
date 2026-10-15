@@ -61,7 +61,9 @@ function sapphireShader(material) {
 }
 
 export function finishProfileName(name, part) {
-  if (part.startsWith('gear')) return 'gear';
+  if (part === 'backplate') return 'caseback';
+  if (part.startsWith('gear')) return name === 'enjoy_the_model' ? 'gearSteel' : 'gear';
+  if (['movement', 'bridges'].includes(part) && /^(Metal|Material\.00[47]|Screw_7)|enjoy_the_model/.test(name) && !name.includes('gold')) return 'mechanismSteel';
   if (name === 'Glass') return 'sapphire';
   if (name === 'Bezel_enamel') return 'enamel';
   if (name === 'Dial_chestnut') return 'dial';
@@ -116,6 +118,9 @@ export function createTreatments() {
         }
       }
     }
+    // Imported packed maps may contain a zero metallic channel. A defined
+    // metal finish must not silently become a diffuse gray surface.
+    if (profile?.metalness !== undefined) studio.metalnessMap = null;
     if (profileName === 'sapphire') {
       // Transmission already models transparent glass. Alpha blending would
       // artificially dilute Fresnel reflections and conceal its real refraction.

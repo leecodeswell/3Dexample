@@ -102,26 +102,56 @@
     "transmission": 1,
     "thickness": 0.008,
     "ior": 1.76,
-    "envMapIntensity": 0.35,
+    "envMapIntensity": 0.85,
     "opacity": 1,
-    "clearcoat": 0,
-    "clearcoatRoughness": 0.03,
-    "iridescence": 0.12,
+    "clearcoat": 0.12,
+    "clearcoatRoughness": 0.035,
+    "iridescence": 0.035,
     "iridescenceIOR": 1.38,
     "iridescenceThicknessRange": [
       105,
       135
     ],
-    "specularIntensity": 0.16
+    "specularIntensity": 0.55
   },
   "gear": {
-    "color": "#e7bc71",
+    "color": "#c8a06a",
     "metalness": 1,
-    "roughness": 0.105,
-    "clearcoat": 1,
-    "clearcoatRoughness": 0.045,
+    "roughness": 0.22,
+    "clearcoat": 0.18,
+    "clearcoatRoughness": 0.12,
     "surface": "machined",
-    "normalStrength": 0.035,
-    "envMapIntensity": 2.8
+    "normalStrength": 0.055,
+    "envMapIntensity": 1.2
+  },
+  "gearSteel": {
+    "color": "#9da8b2",
+    "metalness": 1,
+    "roughness": 0.19,
+    "clearcoat": 0.18,
+    "clearcoatRoughness": 0.12,
+    "surface": "satin",
+    "normalStrength": 0.055,
+    "envMapIntensity": 1.05
+  },
+  "mechanismSteel": {
+    "color": "#56616d",
+    "metalness": 1,
+    "roughness": 0.34,
+    "clearcoat": 0.06,
+    "clearcoatRoughness": 0.12,
+    "surface": "satin",
+    "normalStrength": 0.055,
+    "envMapIntensity": 0.65
+  },
+  "caseback": {
+    "color": "#39434c",
+    "metalness": 1,
+    "roughness": 0.42,
+    "clearcoat": 0,
+    "clearcoatRoughness": 0.12,
+    "surface": "satin",
+    "normalStrength": 0.055,
+    "envMapIntensity": 0.5
   }
 }
