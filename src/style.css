@@ -44,4 +44,4 @@ h1{font-size:clamp(58px,6.4vw,104px);margin:27px 0 23px;letter-spacing:-.045em}
 #watch-canvas{position:relative;z-index:1}
 @media(max-width:700px){#watch-poster{width:170%;left:-35%;object-fit:contain}}
 
-.scroll-track #circum{height:240svh;min-height:1400px}
+.scroll-track #circum{height:210svh;min-height:1225px}

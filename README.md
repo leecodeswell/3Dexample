@@ -17,7 +17,7 @@ Deploy `dist/` to a static host. Runtime needs no backend, credentials, external
 
 ## Explore
 
-- Scroll to separate the crystal, hands, dial, movement, bridges, gears, case and bracelet while the camera and model turn. Continue scrolling after the reveal for a cinematic 360° orbit with every part held fully expanded. Scroll upward to reverse the orbit, then reassemble. Playback adds a steady nine-second orbit after the existing nine-second reveal. One gentle pullback frames the whole assembly before the turn; the camera then holds its distance and height.
+- Scroll to separate the crystal, hands, dial, movement, bridges, gears, case and bracelet while the camera and model turn. Continue scrolling after the reveal for a cinematic 360° orbit with every part held fully expanded. Scroll upward to reverse the orbit, then reassemble. Playback adds a 7.5-second orbit after the existing nine-second reveal, with a shorter 0.6-second lead-in. One gentle pullback frames the whole assembly before the turn; the camera then holds its distance and height.
 - Use the slider for direct control, or Play for the nine-second reversible reveal.
 - Drag to orbit; right-drag or Ctrl-wheel to zoom. Normal wheel scrolling advances the page.
 - Select a part or technical label and choose **CONTEMPLARE** for a closer camera view.

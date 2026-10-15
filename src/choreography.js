@@ -24,8 +24,8 @@ export function samplePose(progress, isMobile = false) {
 }
 
 export const ORBIT_SPAN = 1 / 3;
-export const ORBIT_DURATION = 9;
-const ORBIT_SETTLE = .18;
+export const ORBIT_DURATION = 7.5;
+const ORBIT_SETTLE = .08;
 
 // A single gentle pullback precedes the turn. The turn itself keeps a fixed
 // radius, elevation and target, with no angle-dependent zoom or vertical bob.
