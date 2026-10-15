@@ -81,7 +81,7 @@ export function createTreatments() {
   for (const finish of ['satin', 'machined', 'polished', 'sunburst']) {
     maps[finish] = {};
     for (const channel of ['normal', 'roughness']) {
-      pending.push(loader.loadAsync(`/surfaces/${finish}-${channel}.png`).then(texture => {
+      pending.push(loader.loadAsync(`${import.meta.env.BASE_URL}surfaces/${finish}-${channel}.png`).then(texture => {
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         texture.repeat.setScalar(finish === 'sunburst' ? 1 : finish === 'polished' ? 2 : 4);
         texture.anisotropy = 8;
