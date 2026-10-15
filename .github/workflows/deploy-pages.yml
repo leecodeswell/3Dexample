@@ -29,6 +29,18 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Verify built asset paths
+        run: |
+          test -f dist/index.html
+          test -f dist/watch-photoreal.glb
+          test -f dist/studio.hdr
+          test -f dist/watch-hero.webp
+          test -d dist/surfaces
+          grep -q '/3Dexample/assets/' dist/index.html
+          if grep -q 'src="/src/main.js"' dist/index.html; then
+            echo 'Uncompiled Vite source detected in dist/index.html'
+            exit 1
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
