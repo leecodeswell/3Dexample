@@ -5,7 +5,7 @@ import { createContactShading } from './contact-shading.js';
 import { createStudioBackdrop } from './backdrop.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-import { samplePose, sampleOrbitPose, frameOrbitPose, ORBIT_SPAN } from './choreography.js';
+import { samplePose, sampleOrbitPose, frameOrbitPose, ORBIT_SPAN, ORBIT_DURATION } from './choreography.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -461,11 +461,11 @@ function setupInteraction() {
     const revealDuration = reducedMotion ? .4 : Math.max(2, Math.abs(destination - state.progress) * 9);
     explosionTween = gsap.timeline({ onUpdate: applyExplosion, onComplete: stopPlayback });
     if (destination === 0) {
-      if (state.orbit > 0) explosionTween.to(state, { sequence: 1, duration: reducedMotion ? .4 : state.orbit * 3, ease: 'none' });
+      if (state.orbit > 0) explosionTween.to(state, { sequence: 1, duration: state.cinematic ? state.orbit * ORBIT_DURATION : 0, ease: 'none' });
       explosionTween.to(state, { sequence: 0, duration: revealDuration, ease: 'sine.inOut' });
     } else {
       explosionTween.to(state, { sequence: 1, duration: revealDuration, ease: 'sine.inOut' });
-      if (state.cinematic) explosionTween.to(state, { sequence: 1 + ORBIT_SPAN, duration: reducedMotion ? .4 : 3, ease: 'none' });
+      if (state.cinematic) explosionTween.to(state, { sequence: 1 + ORBIT_SPAN, duration: ORBIT_DURATION, ease: 'none' });
     }
   });
   $('#reset-view').addEventListener('click', () => {

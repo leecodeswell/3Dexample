@@ -205,7 +205,8 @@ test('final 360 orbit freezes the expanded assembly and reverses before reassemb
       sweep += delta; previous = angle;
       expect(pose.rotation).toEqual(finale.rotation);
       expect(pose.target).toEqual(finale.target);
-      expect(Math.hypot(pose.eye[0] - pose.target[0], pose.eye[2] - pose.target[2])).toBeGreaterThanOrEqual(Math.hypot(finale.eye[0] - finale.target[0], finale.eye[2] - finale.target[2]) - 1e-8);
+      expect(Math.hypot(pose.eye[0] - pose.target[0], pose.eye[2] - pose.target[2])).toBeCloseTo(Math.hypot(finale.eye[0] - finale.target[0], finale.eye[2] - finale.target[2]), 8);
+      expect(pose.eye[1]).toBe(finale.eye[1]);
     }
     expect(sweep).toBeCloseTo(Math.PI * 2, 8);
   }
@@ -224,6 +225,7 @@ test('final 360 orbit freezes the expanded assembly and reverses before reassemb
     await expect.poll(() => page.evaluate(() => __watchShowcase.orbitProgress)).toBeCloseTo(progress, 3);
     await expect.poll(() => page.evaluate(() => Math.hypot(...__watchShowcase.cameraPosition.map((value, i) => value - __watchShowcase.cinematicCameraPosition[i])))).toBeLessThan(.00001);
   };
+  let steadyRadius, steadyHeight;
   for (const progress of [.25, .5, .75, 1, .5, 0]) {
     await scrollOrbit(progress);
     expect(await page.evaluate(() => __watchShowcase.progress)).toBe(1);
@@ -232,9 +234,14 @@ test('final 360 orbit freezes the expanded assembly and reverses before reassemb
     expect(await page.evaluate(() => __watchShowcase.modelRotation)).toEqual(full.rotation);
     expect(await page.evaluate(() => __watchShowcase.crystalRotation)).toEqual(full.glass);
     const camera = await page.evaluate(() => __watchShowcase.cinematicCameraPosition);
-    if (progress === 0 || progress === 1) camera.forEach((value, i) => expect(value).toBeCloseTo(full.camera[i], 8));
+    if (progress === 0) camera.forEach((value, i) => expect(value).toBeCloseTo(full.camera[i], 8));
     else {
       expect(camera).not.toEqual(full.camera);
+      const target = samplePose(1).target;
+      const radius = Math.hypot(...camera.map((value, i) => value - target[i]));
+      if (steadyRadius === undefined) { steadyRadius = radius; steadyHeight = camera[1]; }
+      expect(radius).toBeCloseTo(steadyRadius, 8);
+      expect(camera[1]).toBeCloseTo(steadyHeight, 8);
       const bounds = await page.evaluate(() => __watchShowcase.expandedBounds);
       const view = new PerspectiveCamera(36, 800 / 640, .05, 70);
       view.position.fromArray(camera); view.lookAt(...samplePose(1).target); view.updateMatrixWorld();
