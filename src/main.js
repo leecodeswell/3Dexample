@@ -202,13 +202,13 @@ async function loadWatch() {
   watchRoot = new THREE.Group(); scene.add(watchRoot);
   watchRoot.rotation.set(...samplePose(0).rotation);
   const sourceWorld = new Map();
-  const [environment] = await Promise.all([new HDRLoader().loadAsync(modelConfig.environment), treatments.ready]);
+  const [environment] = await Promise.all([new HDRLoader().loadAsync(`${import.meta.env.BASE_URL}${modelConfig.environment.replace(/^\//, '')}`), treatments.ready]);
   environment.mapping = THREE.EquirectangularReflectionMapping;
   const generator = new THREE.PMREMGenerator(renderer);
   const reflectionMap = generator.fromEquirectangular(environment);
   scene.environment = reflectionMap.texture; scene.environmentIntensity = .85;
   environment.dispose(); generator.dispose();
-  const gltf = await loader.loadAsync(modelConfig.model.asset, e => {
+  const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}${modelConfig.model.asset.replace(/^\//, '')}`, e => {
     if (e.total) $('#load-percent').textContent = `${Math.round(e.loaded / e.total * 100)}%`;
   });
   watchRoot.add(gltf.scene); scene.updateMatrixWorld(true);
