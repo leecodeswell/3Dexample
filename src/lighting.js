@@ -1,14 +1,31 @@
 import * as THREE from 'three';
 
-// Broad sources preserve readable metal; thin strips draw traveling highlights.
+// Layered diffusion panels approximate a rounded studio softbox: a bright
+// center fades through wider shoulders instead of ending in a razor-thin bar.
+function diffusedSoftbox(color, width, height) {
+  const light = new THREE.Group();
+  const horizontal = width > height;
+  for (const [short, long, weight] of [[.64, 1, .32], [.86, .94, .42], [1, .78, .26]]) {
+    const panel = new THREE.RectAreaLight(color, 1, width * (horizontal ? long : short), height * (horizontal ? short : long));
+    // Groups aim their +Z axis; area lights emit along -Z.
+    panel.rotation.y = Math.PI;
+    panel.userData.weight = weight;
+    light.add(panel);
+  }
+  return light;
+}
+
+// Preserve the rig's motion and color; soften only the narrow key reflections.
 export function createCinematicLighting(scene) {
   const sources = [
-    [0xffbb68, 14, .16, 6],
+    [0xffbb68, 14, .55, 3.6],
     [0x69bbff, 12, .12, 5],
-    [0xfff1d2, 10, 5, .16],
+    [0xfff1d2, 10, 3.6, .55],
     [0xff672a, 9, 2, 3],
-  ].map(([color, intensity, width, height]) => {
-    const light = new THREE.RectAreaLight(color, intensity, width, height);
+  ].map(([color, intensity, width, height], index) => {
+    const light = index === 0 || index === 2
+      ? diffusedSoftbox(color, width, height)
+      : new THREE.RectAreaLight(color, intensity, width, height);
     scene.add(light);
     return light;
   });
@@ -35,6 +52,9 @@ export function createCinematicLighting(scene) {
       sources[1].intensity = 9 + reveal * 10;
       sources[2].intensity = 8 + Math.sin(p * Math.PI) ** 4 * 16;
       sources[3].intensity = 7 + reveal * 12;
+      for (const light of sources) {
+        for (const panel of light.children) panel.intensity = light.intensity * panel.userData.weight;
+      }
       bloom.strength = enabled ? .38 + reveal * .3 : .014;
       bloom.radius = .8;
       bloom.threshold = enabled ? .85 : 3.5;
