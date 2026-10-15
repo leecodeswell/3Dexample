@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { Euler, Vector3 } from 'three';
-import { samplePose } from '../src/choreography.js';
+import { Euler, Vector3, PerspectiveCamera } from 'three';
+import { samplePose, sampleOrbitPose } from '../src/choreography.js';
 
 async function load(page, path = '/') {
   const errors = [];
@@ -187,5 +187,82 @@ test('full studio quality preserves a visible dial with contact shading and shad
   await setExplosion(page, 0);
   expect(await page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
   expect((await page.locator('#watch-canvas').screenshot()).byteLength).toBeGreaterThan(50_000);
+  expect(errors).toEqual([]);
+});
+
+test('final 360 orbit freezes the expanded assembly and reverses before reassembly', async ({ page }) => {
+  for (const mobile of [false, true]) {
+    const finale = samplePose(1, mobile);
+    expect(sampleOrbitPose(0, mobile)).toEqual(finale);
+    expect(sampleOrbitPose(1, mobile)).toEqual(finale);
+    let sweep = 0, previous = Math.atan2(finale.eye[0] - finale.target[0], finale.eye[2] - finale.target[2]);
+    for (let step = 1; step <= 1000; step++) {
+      const pose = sampleOrbitPose(step / 1000, mobile);
+      const angle = Math.atan2(pose.eye[0] - pose.target[0], pose.eye[2] - pose.target[2]);
+      let delta = angle - previous;
+      if (delta < -Math.PI) delta += Math.PI * 2;
+      if (delta > Math.PI) delta -= Math.PI * 2;
+      sweep += delta; previous = angle;
+      expect(pose.rotation).toEqual(finale.rotation);
+      expect(pose.target).toEqual(finale.target);
+      expect(Math.hypot(pose.eye[0] - pose.target[0], pose.eye[2] - pose.target[2])).toBeGreaterThanOrEqual(Math.hypot(finale.eye[0] - finale.target[0], finale.eye[2] - finale.target[2]) - 1e-8);
+    }
+    expect(sweep).toBeCloseTo(Math.PI * 2, 8);
+  }
+  await page.setViewportSize({ width: 800, height: 640 });
+  const errors = await load(page);
+  await page.locator('#settings-toggle').click();
+  await page.locator('#camera-motion').check();
+  await page.keyboard.press('Escape');
+  await setExplosion(page, 1000);
+  const full = await page.evaluate(() => ({ positions: __watchShowcase.positions, gears: __watchShowcase.gearRotations, rotation: __watchShowcase.modelRotation, glass: __watchShowcase.crystalRotation, camera: __watchShowcase.cinematicCameraPosition }));
+  const scrollOrbit = async progress => {
+    await page.evaluate(value => {
+      const section = document.querySelector('#circum');
+      window.scrollTo({ top: section.offsetTop - innerHeight + section.offsetHeight * value, behavior: 'instant' });
+    }, progress);
+    await expect.poll(() => page.evaluate(() => __watchShowcase.orbitProgress)).toBeCloseTo(progress, 3);
+    await expect.poll(() => page.evaluate(() => Math.hypot(...__watchShowcase.cameraPosition.map((value, i) => value - __watchShowcase.cinematicCameraPosition[i])))).toBeLessThan(.00001);
+  };
+  for (const progress of [.25, .5, .75, 1, .5, 0]) {
+    await scrollOrbit(progress);
+    expect(await page.evaluate(() => __watchShowcase.progress)).toBe(1);
+    expect(await page.evaluate(() => __watchShowcase.positions)).toEqual(full.positions);
+    expect(await page.evaluate(() => __watchShowcase.gearRotations)).toEqual(full.gears);
+    expect(await page.evaluate(() => __watchShowcase.modelRotation)).toEqual(full.rotation);
+    expect(await page.evaluate(() => __watchShowcase.crystalRotation)).toEqual(full.glass);
+    const camera = await page.evaluate(() => __watchShowcase.cinematicCameraPosition);
+    if (progress === 0 || progress === 1) camera.forEach((value, i) => expect(value).toBeCloseTo(full.camera[i], 8));
+    else {
+      expect(camera).not.toEqual(full.camera);
+      const bounds = await page.evaluate(() => __watchShowcase.expandedBounds);
+      const view = new PerspectiveCamera(36, 800 / 640, .05, 70);
+      view.position.fromArray(camera); view.lookAt(...samplePose(1).target); view.updateMatrixWorld();
+      for (const x of [bounds.min[0], bounds.max[0]]) for (const y of [bounds.min[1], bounds.max[1]]) for (const z of [bounds.min[2], bounds.max[2]]) {
+        const point = new Vector3(x, y, z).project(view);
+        expect(Math.abs(point.x)).toBeLessThan(1);
+        expect(Math.abs(point.y)).toBeLessThan(1);
+      }
+    }
+  }
+  // Portrait framing must reach its fitted radius, rather than being clamped
+  // by the manual OrbitControls zoom limit.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await scrollOrbit(.37);
+  const portrait = await page.evaluate(() => ({ eye: __watchShowcase.cameraPosition, bounds: __watchShowcase.expandedBounds }));
+  const portraitView = new PerspectiveCamera(42, 390 / 844, .05, 70);
+  portraitView.position.fromArray(portrait.eye); portraitView.lookAt(...samplePose(1, true).target); portraitView.updateMatrixWorld();
+  for (const x of [portrait.bounds.min[0], portrait.bounds.max[0]]) for (const y of [portrait.bounds.min[1], portrait.bounds.max[1]]) for (const z of [portrait.bounds.min[2], portrait.bounds.max[2]]) {
+    const point = new Vector3(x, y, z).project(portraitView);
+    expect(Math.abs(point.x)).toBeLessThan(1);
+    expect(Math.abs(point.y)).toBeLessThan(1);
+  }
+  await page.setViewportSize({ width: 800, height: 640 });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect.poll(() => page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
+  await page.locator('#play-explosion').click();
+  await expect.poll(() => page.evaluate(() => __watchShowcase.orbitProgress)).toBeCloseTo(1, 3);
+  await page.locator('#play-explosion').click();
+  await expect.poll(() => page.evaluate(() => __watchShowcase.sourceTransformsMatch)).toBe(true);
   expect(errors).toEqual([]);
 });

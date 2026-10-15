@@ -5,7 +5,7 @@ import { createContactShading } from './contact-shading.js';
 import { createStudioBackdrop } from './backdrop.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-import { samplePose } from './choreography.js';
+import { samplePose, sampleOrbitPose, frameOrbitPose, ORBIT_SPAN } from './choreography.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -24,7 +24,7 @@ const canvas = $('#watch-canvas'), stage = $('#stage');
 const slider = $('#explosion-slider'), output = $('#explosion-value');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mobile = () => innerWidth <= 700;
-const state = { progress: 0, ready: false, cinematic: !reducedMotion, labels: true, studio: true, brown: true, finish: true, interacting: false, focused: false, manualView: false };
+const state = { sequence: 0, progress: 0, orbit: 0, ready: false, cinematic: !reducedMotion, labels: true, studio: true, brown: true, finish: true, interacting: false, focused: false, manualView: false };
 const parts = new Map(), pickable = [], labels = [];
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -35,6 +35,7 @@ const chapters = [
   { eyebrow: 'ESSENTIA REVELATA', title: 'Omnia.<br><em>In uno.</em>', description: 'Vitrum, argentum, lumen.<br>Perfectio ex singulis partibus nascitur.', name: 'ESSENTIA REVELATA', action: 'REDI AD INITIUM' },
 ];
 let watchRoot;
+let expandedBounds;
 let renderDirty = true;
 let chapter = -1, renderer, composer, camera, controls, scene, bloom, contactShading, studioQuality, explosionTween, cameraTween;
 let animationFrame, scrollTrigger, lastInteraction = 0, clickStart, disposed = false;
@@ -82,7 +83,9 @@ function displayProgress(p) {
   slider.value = Math.round(p * 1000);
   slider.style.setProperty('--progress', `${p * 100}%`);
   output.textContent = `${String(Math.round(p * 100)).padStart(3, '0')}%`;
-  $('#scroll-progress-fill').style.width = `${p * 100}%`;
+  const fraction = revealDistance() / (revealDistance() + $('#circum').offsetHeight);
+  $('#scroll-progress-fill').style.width = `${(p * fraction + state.orbit * (1 - fraction)) * 100}%`;
+  $('#sequence-title').textContent = state.orbit > 0 ? 'CIRCUMSPECTIO · 360°' : 'ANATOMIA TEMPORIS';
   setChapter(p < .30 ? 0 : p < .74 ? 1 : 2);
 }
 
@@ -122,6 +125,8 @@ for (let i = 0; i < 16; i++) {
 }
 
 function applyExplosion() {
+  state.progress = THREE.MathUtils.clamp(state.sequence, 0, 1);
+  state.orbit = THREE.MathUtils.clamp((state.sequence - 1) / ORBIT_SPAN, 0, 1);
   renderDirty = true;
   for (const part of parts.values()) {
     const t = smoothStep(...part.range, state.progress);
@@ -141,10 +146,21 @@ function applyExplosion() {
     if (key === 'tourbillon') part.group.rotation.z = smoothStep(.10, 1, state.progress) * Math.PI * 2;
   }
   displayProgress(state.progress);
-  const pose = samplePose(state.progress, mobile());
+  const pose = state.orbit > 0 ? sampleOrbitPose(state.orbit, mobile()) : samplePose(state.progress, mobile());
   if (watchRoot) watchRoot.rotation.set(...(state.cinematic ? pose.rotation : samplePose(0).rotation));
+  if (state.progress < 1) expandedBounds = null;
+  if (watchRoot && state.orbit > 0) {
+    const rotation = watchRoot.rotation.toArray().slice(0, 3).join(',');
+    if (!expandedBounds || expandedBounds.rotation !== rotation) {
+      watchRoot.updateWorldMatrix(true, true);
+      const box = new THREE.Box3().setFromObject(watchRoot);
+      expandedBounds = { min: box.min.toArray(), max: box.max.toArray(), rotation };
+    }
+    frameOrbitPose(pose, expandedBounds, camera.aspect, camera.fov, state.orbit);
+  }
   cinematicPosition.fromArray(pose.eye);
   cinematicTarget.fromArray(pose.target);
+  controls.maxDistance = Math.max(19, cinematicPosition.distanceTo(cinematicTarget) * 1.05);
 
 }
 
@@ -237,6 +253,9 @@ async function loadWatch() {
   gsap.to('#watch-poster', { opacity: 0, duration: reducedMotion ? 0 : .65, delay: .1, onComplete: () => { $('#watch-poster').hidden = true; } });
   window.__watchShowcase = {
     get progress() { return state.progress; },
+    get orbitProgress() { return state.orbit; },
+    get cinematicCameraPosition() { return cinematicPosition.toArray(); },
+    get expandedBounds() { return expandedBounds; },
     get parts() { return [...parts.keys()]; },
     get meshCount() { return pickable.length; },
     get modelRotation() { return watchRoot.rotation.toArray().slice(0, 3); },
@@ -304,9 +323,15 @@ function animate() {
   if (state.ready) {
     const canFollow = state.cinematic && !state.manualView && !state.interacting && !state.focused && !controls.autoRotate && performance.now() - lastInteraction > 4500;
     if (canFollow && !cameraTween?.isActive()) {
-      const alpha = 1 - Math.exp(-dt * 3.5);
-      camera.position.lerp(cinematicPosition, alpha);
-      controls.target.lerp(cinematicTarget, alpha);
+      if (state.orbit > 0) {
+        // Sequence scrubbing already eases the angular path. Follow its sampled
+        // radius instead of lerping a chord through the model on a fast scroll.
+        camera.position.copy(cinematicPosition); controls.target.copy(cinematicTarget);
+      } else {
+        const alpha = 1 - Math.exp(-dt * 3.5);
+        camera.position.lerp(cinematicPosition, alpha);
+        controls.target.lerp(cinematicTarget, alpha);
+      }
     }
     controls.update(Math.min(dt, .25)); scene.updateMatrixWorld(); updateLabels();
   }
@@ -391,20 +416,31 @@ function setupScene() {
   });
 }
 
+function revealDistance() {
+  // The first three chapters keep their original scroll distance. The fourth
+  // section adds the orbit after the complete reveal rather than compressing it.
+  return Math.max(1, $('#circum').offsetTop - innerHeight);
+}
+
 function setupInteraction() {
   setChapter(0); $('#camera-motion').checked = state.cinematic;
+  // Establish scroll ownership before ScrollTrigger handles that same event,
+  // including a scrollbar jump immediately after manual slider control.
+  window.addEventListener('scroll', () => { scrollIntent = true; }, { passive: true, capture: true });
   scrollTrigger = ScrollTrigger.create({
     trigger: '.scroll-track', start: 'top top', end: 'bottom bottom',
     onUpdate: (self) => {
       if (!state.ready || !scrollIntent) return;
       stopPlayback(); closeInspector(); state.manualView = false;
       gsap.killTweensOf(state);
-      gsap.to(state, { progress: self.progress, duration: reducedMotion ? 0 : .55, ease: 'power2.out', onUpdate: applyExplosion });
+      const distance = self.scroll() - self.start;
+      const reveal = revealDistance();
+      const sequence = distance <= reveal ? distance / reveal : 1 + ORBIT_SPAN * (distance - reveal) / $('#circum').offsetHeight;
+      gsap.to(state, { sequence: THREE.MathUtils.clamp(sequence, 0, 1 + ORBIT_SPAN), duration: reducedMotion ? 0 : .55, ease: 'power2.out', onUpdate: applyExplosion });
     },
   });
   // Only deliberate scrolling takes ownership after manual slider input.
   window.addEventListener('wheel', () => { scrollIntent = true; }, { passive: true, capture: true });
-  window.addEventListener('scroll', () => { scrollIntent = true; }, { passive: true });
   window.addEventListener('touchmove', (event) => { if (!stage.contains(event.target)) scrollIntent = true; }, { passive: true });
   window.addEventListener('keydown', (e) => {
     if (['PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(e.key) && !['INPUT', 'BUTTON'].includes(document.activeElement?.tagName)) scrollIntent = true;
@@ -413,7 +449,7 @@ function setupInteraction() {
   slider.addEventListener('input', () => {
     if (!state.ready) return;
     scrollIntent = false; stopPlayback(); closeInspector(); state.manualView = false; gsap.killTweensOf(state);
-    state.progress = Number(slider.value) / 1000; applyExplosion();
+    state.sequence = Number(slider.value) / 1000; applyExplosion();
   });
   slider.addEventListener('pointerdown', () => { scrollIntent = false; stopPlayback(); });
   $('#play-explosion').addEventListener('click', () => {
@@ -422,7 +458,15 @@ function setupInteraction() {
     scrollIntent = false; closeInspector(); state.manualView = false; gsap.killTweensOf(state);
     const destination = state.progress > .99 ? 0 : 1;
     $('#play-explosion').textContent = 'II'; $('#play-explosion').setAttribute('aria-label', 'Pause exploded view');
-    explosionTween = gsap.to(state, { progress: destination, duration: reducedMotion ? .4 : Math.max(2, Math.abs(destination - state.progress) * 9), ease: 'sine.inOut', onUpdate: applyExplosion, onComplete: stopPlayback });
+    const revealDuration = reducedMotion ? .4 : Math.max(2, Math.abs(destination - state.progress) * 9);
+    explosionTween = gsap.timeline({ onUpdate: applyExplosion, onComplete: stopPlayback });
+    if (destination === 0) {
+      if (state.orbit > 0) explosionTween.to(state, { sequence: 1, duration: reducedMotion ? .4 : state.orbit * 3, ease: 'none' });
+      explosionTween.to(state, { sequence: 0, duration: revealDuration, ease: 'sine.inOut' });
+    } else {
+      explosionTween.to(state, { sequence: 1, duration: revealDuration, ease: 'sine.inOut' });
+      if (state.cinematic) explosionTween.to(state, { sequence: 1 + ORBIT_SPAN, duration: reducedMotion ? .4 : 3, ease: 'none' });
+    }
   });
   $('#reset-view').addEventListener('click', () => {
     closeInspector(); controls.autoRotate = false; $('#auto-rotate').setAttribute('aria-pressed', 'false');
@@ -448,11 +492,10 @@ function setupInteraction() {
 function navigate(index) {
   closeInspector(); stopPlayback(); scrollIntent = true; state.manualView = false;
   const p = [0, .50, 1][index];
-  const max = document.documentElement.scrollHeight - innerHeight;
-  window.scrollTo({ top: p * max, behavior: reducedMotion ? 'instant' : 'smooth' });
+  window.scrollTo({ top: p * revealDistance(), behavior: reducedMotion ? 'instant' : 'smooth' });
   // Navigation also works when scroll is already at the requested location.
   gsap.killTweensOf(state);
-  gsap.to(state, { progress: p, duration: reducedMotion ? 0 : 1.8, ease: 'power2.inOut', onUpdate: applyExplosion });
+  gsap.to(state, { sequence: p, duration: reducedMotion ? 0 : 1.8, ease: 'power2.inOut', onUpdate: applyExplosion });
 }
 
 try {
